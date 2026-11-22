@@ -103,6 +103,7 @@ h1,h2,h3{font-family:var(--f-display);text-wrap:balance;margin:0;letter-spacing:
 .role[data-role="student"] .dot{background:var(--accent2)}
 .role strong{color:var(--ink);display:block;font-size:13.5px}
 .acct:empty{display:none}
+.ver{font-size:11.5px;color:var(--muted)}
 .acct .btn{height:40px;width:100%;justify-content:center;font-size:14px}
 .gl{width:18px;height:18px;flex:none}
 .f-notice .btn{margin-top:10px;height:40px;font-size:14px}
@@ -395,6 +396,7 @@ body.focus .side{visibility:hidden}
     <div class="side-foot">
       <div class="role" id="role" data-role="pending"><span class="dot"></span><span><strong id="roleT">Connecting…</strong><span id="roleS">Checking who can write on the boards.</span></span></div>
       <div class="acct" id="acct"></div>
+      <div class="ver">Site version: 23 Nov 2026 (Pencil fix 2)</div>
     </div>
   </aside>
   <div class="scrim-side" id="sideScrim"></div>
@@ -951,11 +953,17 @@ function bundleFor(n) {
   if (!BUNDLES.has(f)) BUNDLES.set(f, fetch(f).then(r => (r.ok ? r.json() : null)).catch(() => { BUNDLES.delete(f); return null; }));
   return BUNDLES.get(f);
 }
+// iPad Safari can cut a Pencil's pointer events short. There the Pencil is read from its touch events
+// (touchType 'stylus'), which keep coming for the whole stroke, and its pointer events are ignored.
+const IPAD = /iPad|iPhone|iPod/.test(navigator.userAgent) || (/Macintosh/.test(navigator.userAgent) && navigator.maxTouchPoints > 1);
+const stylusOf = e => { for (const t of e.changedTouches) if (t.touchType === 'stylus') return t; return null; };
+const stylusEv = (t, end) => ({ pointerId: 'S' + t.identifier, pointerType: 'pen', clientX: t.clientX, clientY: t.clientY,
+  pressure: t.force > 0 ? Math.min(1, t.force) : 0.5, button: 0, buttons: end ? 0 : 1, synthetic: true, target: t.target, preventDefault() {} });
 const Diag = {
   on: false, lines: [],
-  log(t, e) { if (!this.on) return; if (t === 'pointermove' && this.lastT === 'pointermove' && this.lines.length) { this.lines[this.lines.length - 1].n++; } else { this.lines.push({ t, p: e.pointerType, id: e.pointerId, b: e.buttons, n: 1 }); if (this.lines.length > 10) this.lines.shift(); } this.lastT = t; this.show(); },
+  log(t, e) { if (!this.on) return; if (t.endsWith('move') && this.lastT === t && this.lines.length) { this.lines[this.lines.length - 1].n++; } else { this.lines.push({ t, p: e.pointerType, id: e.pointerId, b: e.buttons, n: 1 }); if (this.lines.length > 10) this.lines.shift(); } this.lastT = t; this.show(); },
   show() { let el = $('#diag'); if (!el) { el = document.createElement('div'); el.id = 'diag'; el.style.cssText = 'position:absolute;left:12px;top:12px;z-index:5;padding:8px 10px;border-radius:12px;background:rgba(45,42,68,.86);color:#fff;font:12px/1.45 ui-monospace,Menlo,monospace;pointer-events:none;white-space:pre'; $('#board').appendChild(el); }
-    el.textContent = 'Pencil check (tap ••• to turn off)\n' + this.lines.map(l => `${l.t.replace('pointer', '')} ${l.p} #${l.id} b${l.b}${l.n > 1 ? ' ×' + l.n : ''}`).join('\n'); },
+    el.textContent = `Pencil check (iPad mode: ${IPAD ? 'on' : 'off'}; tap ••• to turn off)\n` + this.lines.map(l => `${l.t.replace('pointer', 'p-').replace('touch', 't-')} ${l.p} #${l.id} b${l.b}${l.n > 1 ? ' ×' + l.n : ''}`).join('\n'); },
   toggle() { this.on = !this.on; this.lines = []; const el = $('#diag'); if (el) el.remove(); if (this.on) this.show(); }
 };
 const Img = {
@@ -985,8 +993,11 @@ const Input = {
     const endOutside = e => { if (this.act && e.target !== el && (e.pointerId === this.act.pid || this.same(this.act, e))) this.up(e, e.type === 'pointercancel'); };
     window.addEventListener('pointerup', endOutside, true); window.addEventListener('pointercancel', endOutside, true);
     el.addEventListener('contextmenu', e => e.preventDefault());
-    // iPad: stop the magnifier, callouts and page gestures from stealing Pencil strokes
-    for (const t of ['touchstart', 'touchmove']) el.addEventListener(t, e => { if (e.cancelable) e.preventDefault(); }, { passive: false });
+    // iPad: stop the magnifier, callouts and page gestures from stealing Pencil strokes, and read the Pencil from its touches
+    el.addEventListener('touchstart', e => { if (e.cancelable) e.preventDefault(); const t = stylusOf(e); if (t) { const ev = stylusEv(t); Diag.log('touchstart', ev); if (IPAD) this.down(ev); } }, { passive: false });
+    el.addEventListener('touchmove', e => { if (e.cancelable) e.preventDefault(); const t = stylusOf(e); if (t) { const ev = stylusEv(t); Diag.log('touchmove', ev); if (IPAD) this.move(ev); } }, { passive: false });
+    el.addEventListener('touchend', e => { const t = stylusOf(e); if (t) { const ev = stylusEv(t, true); Diag.log('touchend', ev); if (IPAD) this.up(ev); } });
+    el.addEventListener('touchcancel', e => { const t = stylusOf(e); if (t) { const ev = stylusEv(t, true); Diag.log('touchcancel', ev); if (IPAD) this.up(ev, true); } });
   },
   xy(e) { const r = this.rect; return [(e.clientX - r.left) / Board.scale + Board.sx, (e.clientY - r.top) / Board.scale + Board.sy]; },
   pinchStart() {
@@ -1001,6 +1012,7 @@ const Input = {
   pr(e) { if (e.pointerType !== 'pen') return 0.5; const p = e.pressure || 0.5; return clamp(0.15 + 0.85 * Math.pow(p, 0.6), 0.12, 1); },
   down(e) {
     if (!Board.item) return;
+    if (IPAD && e.pointerType === 'pen' && !e.synthetic) return;     // on iPad the Pencil comes through its touches
     cancelAnimationFrame(this.inertia);
     this.rect = Board.live.getBoundingClientRect();
     if (e.pointerType === 'pen' && !S.penSeen) { S.penSeen = true; LS.set('penSeen', true); }
@@ -1052,6 +1064,7 @@ const Input = {
   same(a, e) { return e.pointerId === a.pid || (a.ptype === 'pen' && e.pointerType === 'pen'); },
   move(e) {
     const a = this.act;
+    if (IPAD && e.pointerType === 'pen' && !e.synthetic) return;
     if (e.pointerType === 'touch' && this.touches.has(e.pointerId)) this.touches.set(e.pointerId, { x: e.clientX, y: e.clientY });
     if (!a) return;
     if (a.kind === 'pinch') { if (this.touches.has(e.pointerId) && this.touches.size >= 2) this.pinchMove(); return; }
@@ -1078,6 +1091,7 @@ const Input = {
     }
   },
   up(e, cancelled) {
+    if (IPAD && e.pointerType === 'pen' && !e.synthetic) return;
     if (e.pointerType === 'touch') this.touches.delete(e.pointerId);
     const a = this.act; if (!a) return;
     const resume = () => { const [id, t] = [...this.touches.entries()][0]; this.act = { kind: 'pan', pid: id, x: t.x, y: t.y, t: performance.now(), vx: 0, vy: 0 }; };
@@ -1781,7 +1795,10 @@ const Pad = {
     c.addEventListener('pointerup', e => this.up(e)); c.addEventListener('pointercancel', e => this.up(e));
     const endOutside = e => { if (this.act && e.target !== c) this.up(e); };
     window.addEventListener('pointerup', endOutside, true); window.addEventListener('pointercancel', endOutside, true);
-    for (const t of ['touchstart', 'touchmove']) c.addEventListener(t, e => { if (e.cancelable) e.preventDefault(); }, { passive: false });
+    c.addEventListener('touchstart', e => { if (e.cancelable) e.preventDefault(); const t = stylusOf(e); if (t && IPAD) this.down(stylusEv(t)); }, { passive: false });
+    c.addEventListener('touchmove', e => { if (e.cancelable) e.preventDefault(); const t = stylusOf(e); if (t && IPAD) this.move(stylusEv(t)); }, { passive: false });
+    c.addEventListener('touchend', e => { const t = stylusOf(e); if (t && IPAD) this.up(stylusEv(t, true)); });
+    c.addEventListener('touchcancel', e => { const t = stylusOf(e); if (t && IPAD) this.up(stylusEv(t, true)); });
   },
   size() { const w = $('#pad').clientWidth; if (!w) return; this.dpr = Math.min(devicePixelRatio || 1, 2.5); this.scale = w / PADW; const hh = this.h * this.scale;
     this.c.style.height = hh + 'px'; this.c.width = Math.round(w * this.dpr); this.c.height = Math.round(hh * this.dpr); this.draw(); },
@@ -1795,6 +1812,7 @@ const Pad = {
   },
   xy(e) { const r = this.rect; return [(e.clientX - r.left) / this.scale, clamp((e.clientY - r.top) / this.scale, 0, this.h)]; },
   down(e) {
+    if (IPAD && e.pointerType === 'pen' && !e.synthetic) return;
     if (e.pointerType === 'pen' && !S.penSeen) { S.penSeen = true; LS.set('penSeen', true); }
     if (e.pointerType === 'touch' && S.penSeen && !S.fingerDraw) return;     // palm rest while writing with a stylus
     if (this.act || e.button > 0) return;
@@ -1807,6 +1825,7 @@ const Pad = {
     this.draw();
   },
   move(e) {
+    if (IPAD && e.pointerType === 'pen' && !e.synthetic) return;
     const a = this.act; if (!a || !Input.same(a, e)) return;
     if (e.pointerType === 'pen' && e.buttons === 0 && e.pressure === 0) return;
     const evs = e.getCoalescedEvents ? e.getCoalescedEvents() : null, list = evs && evs.length ? evs : [e];
@@ -1816,6 +1835,7 @@ const Pad = {
     this.draw();
   },
   up(e) {
+    if (IPAD && e.pointerType === 'pen' && !e.synthetic) return;
     const a = this.act; if (!a || !Input.same(a, e)) return; this.act = null;
     if (a.kind === 'draw') { const s = mkStroke(a.s); s.pts = simplify(s.pts, 0.3); this.strokes.push(s); this.hist.push({ t: 'add', s: [s] }); }
     else if (a.items.length) this.hist.push({ t: 'erase', items: a.items });
