@@ -238,7 +238,7 @@ body.rail-right .stage{flex-direction:row-reverse}
 .sheet-h h2{font-size:21px}
 .sheet-body{overflow:auto;border-radius:14px;background:#fff;-webkit-overflow-scrolling:touch}
 .sheet-body img{display:block;width:100%;height:auto}
-.toast{position:fixed;left:50%;bottom:22px;transform:translate(-50%,20px);opacity:0;z-index:60;padding:11px 18px;border-radius:999px;font-weight:700;font-size:14px;
+.toast{position:fixed;left:50%;bottom:22px;transform:translate(-50%,20px);opacity:0;z-index:60;padding:11px 18px;border-radius:22px;max-width:min(560px,calc(100vw - 32px));text-align:center;font-weight:700;font-size:14px;
   background:rgba(45,42,68,.92);color:#fff;box-shadow:0 14px 30px -12px rgba(45,42,68,.6);transition:opacity .2s, transform .2s;pointer-events:none}
 .toast.show{opacity:1;transform:translate(-50%,0)}
 .scrim-side{display:none}
@@ -1003,6 +1003,7 @@ const Input = {
       return;
     }
     const touchPans = touch && (!drawOK || (S.penSeen && !S.fingerDraw));
+    if (e.pointerType === 'pen' && !drawOK) { viewOnlyHint(); return; }
     if (touchPans || e.button === 1 || (e.pointerType === 'mouse' && (this.space || !drawOK))) {
       if (this.act && this.act.kind !== 'pan') this.abort();
       if (!this.act) this.act = { kind: 'pan', pid: e.pointerId, x: e.clientX, y: e.clientY, t: performance.now(), vx: 0, vy: 0 };
@@ -1011,6 +1012,7 @@ const Input = {
     }
     if (this.act) return;
     if (e.button > 0) return;
+    if (!drawOK) { viewOnlyHint(); return; }
     e.preventDefault(); try { Board.live.setPointerCapture(e.pointerId); } catch {}
     const [x, y] = this.xy(e), pid = e.pointerId, d = editDoc();
     const tool = e.pointerType === 'pen' && (e.button === 5 || (e.buttons & 32)) ? 'eraser' : S.tool;   // stylus eraser end
@@ -1101,6 +1103,16 @@ const Input = {
   },
   autoScroll(e) { const r = this.rect, edge = 60; if (e.clientY > r.bottom - edge && Board.sy < Board.maxScroll()) { Board.scrollTo(Board.sy + 6 / Board.scale); } }
 };
+let hintAt = 0;
+function viewOnlyHint() {
+  const now = Date.now(); if (now - hintAt < 4000) return; hintAt = now;
+  let msg;
+  if (S.role === 'pending') msg = 'Still connecting. Try again in a moment.';
+  else if (S.backend === 'firebase' && !S.who) msg = 'This board is view-only. To write, tap Sign in with Google at the bottom of the chapter list and choose your lecturer account.';
+  else if (S.backend === 'firebase') msg = `Only the lecturer account can write solutions. You're signed in as ${S.who.email}. Tap Practice to try it yourself.`;
+  else msg = 'Only the lecturer can write solutions here. Tap Practice to try it yourself.';
+  toast(msg, 6000);
+}
 function shapeFor(x0, y0, x1, y1) {
   const c = S.color.pen, w = SIZES.pen[S.size.pen];
   if (S.tool === 'ring') {
@@ -1216,8 +1228,17 @@ async function doSignIn(btn) {
   try { await S.acct.signIn(); }
   catch (e) {
     const c = e && e.code;
-    if (c === 'auth/unauthorized-domain') toast('This web address isn\'t allowed in Firebase yet. Add it under Authentication, Settings, Authorized domains.');
-    else if (c !== 'auth/popup-closed-by-user' && c !== 'auth/cancelled-popup-request') toast('Sign-in didn\'t finish. Try again.');
+    const why = {
+      'auth/unauthorized-domain': `This web address isn't allowed in Firebase yet. In Firebase, open Authentication, Settings, Authorized domains, and add ${location.hostname}.`,
+      'auth/operation-not-allowed': 'Google sign-in is switched off in Firebase. Open Authentication, Sign-in method, and enable Google.',
+      'auth/configuration-not-found': 'Google sign-in is switched off in Firebase. Open Authentication, Sign-in method, and enable Google.',
+      'auth/popup-blocked': 'The sign-in window was blocked. Allow pop-ups for this site in Safari settings, then try again.',
+      'auth/network-request-failed': 'No connection to Google. Check the internet, then try again.',
+      'auth/invalid-api-key': 'The apiKey in config.js is wrong. Copy it again from Firebase.',
+      'auth/api-key-not-valid.-please-pass-a-valid-api-key.': 'The apiKey in config.js is wrong. Copy it again from Firebase.'
+    }[c];
+    if (why) toast(why, 9000);
+    else if (c !== 'auth/popup-closed-by-user' && c !== 'auth/cancelled-popup-request') toast(`Sign-in didn't finish (${c || 'unknown reason'}). Try again, or send this message to Claude.`, 9000);
   }
   if (btn) btn.disabled = false;
 }
@@ -1374,7 +1395,7 @@ function confirmDlg(title, body, ok, fn) {
   $('#dlgOk').focus();
 }
 let toastT = 0;
-function toast(msg) { const t = $('#toast'); t.textContent = msg; t.classList.add('show'); clearTimeout(toastT); toastT = setTimeout(() => t.classList.remove('show'), 3200); }
+function toast(msg, ms) { const t = $('#toast'); t.textContent = msg; t.classList.add('show'); clearTimeout(toastT); toastT = setTimeout(() => t.classList.remove('show'), ms || 3200); }
 function openSheet(which = 'reduction-potentials') {
   const tabs = [['reduction-potentials', 'Standard reduction potentials'], ['atomic-masses', 'Relative atomic masses'], ['constants', 'Constants and units']];
   const root = $('#modalRoot');
