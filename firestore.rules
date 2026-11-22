@@ -1,0 +1,55 @@
+rules_version = '2';
+
+// EC025 Tutorial Board database rules.
+// Paste all of this into Firebase console > Firestore Database > Rules, then press Publish.
+// Change the email below to the Google account you sign in with (lowercase, keep the quotes).
+// For more than one lecturer: ['first@gmail.com', 'second@gmail.com']
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function lecturer() {
+      return request.auth != null
+        && request.auth.token.email_verified == true
+        && request.auth.token.email.lower() in ['your.email@gmail.com'];
+    }
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    // Worked solutions: anyone with the link can view, only the lecturer can write.
+    match /ink/{question} {
+      allow read: if true;
+      allow write: if lecturer();
+      match /more/{part} {
+        allow read: if true;
+        allow write: if lecturer();
+      }
+    }
+    match /meta/{question} {
+      allow read: if true;
+      allow write: if lecturer();
+    }
+    match /config/{item} {
+      allow read: if true;
+      allow write: if lecturer();
+    }
+
+    // Class forum: only signed-in people can read it.
+    // Each person writes only their own entry; the lecturer can remove any post.
+    match /forum/{uid} {
+      allow read: if signedIn();
+      allow delete: if signedIn() && (request.auth.uid == uid || lecturer());
+      allow create, update: if signedIn() && (request.auth.uid == uid || lecturer())
+        && request.resource.data.keys().hasOnly(['v', 'posts', 'name', 'photo'])
+        && request.resource.data.posts is list
+        && request.resource.data.posts.size() <= 160;
+      match /p/{post} {
+        allow read: if signedIn();
+        allow delete: if signedIn() && (request.auth.uid == uid || lecturer());
+        allow create, update: if signedIn() && (request.auth.uid == uid || lecturer())
+          && request.resource.data.keys().hasOnly(['s', 'h', 'st']);
+      }
+    }
+  }
+}

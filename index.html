@@ -1,0 +1,1936 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>EC025 Tutorial Board</title>
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<meta name="apple-mobile-web-app-title" content="EC025 Board">
+<meta name="theme-color" content="#F6F4FC">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&family=Bricolage+Grotesque:opsz,wght@12..96,500..800&display=swap" rel="stylesheet">
+<style>
+:root{
+  /* Layout: a frosted-glass chapter list on the left; each question opens at the top of its own paper whiteboard, with the pens kept in a glass tool rack beside it. Palette: glassy pastels (lavender, sky, mint, butter) with a periwinkle accent; no pink. */
+  --nude:#F6F4FC;
+  --sand:#E3E0F5;
+  --ink:#2D2A44;
+  --muted:#686583;
+  --accent:#5A67D0;
+  --accent2:#3FA58E;
+  --paper:#FCFCFF;
+  --glass:rgba(255,255,255,.55);
+  --glass-strong:rgba(255,255,255,.84);
+  --glass-edge:rgba(255,255,255,.85);
+  --hair:rgba(70,72,120,.14);
+  --wash:rgba(90,103,208,.12);
+  --shadow:0 22px 44px -22px rgba(60,62,120,.38),0 2px 8px rgba(60,62,120,.07);
+  --f-display:"Bricolage Grotesque","Avenir Next","Segoe UI",system-ui,sans-serif;
+  --f-body:"Atkinson Hyperlegible","Segoe UI",system-ui,-apple-system,sans-serif;
+  --r-lg:22px; --r-md:14px; --r-sm:10px;
+  --side-w:296px;
+  color-scheme:light;
+}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0}
+body{
+  background:var(--nude);color:var(--ink);font-family:var(--f-body);font-size:16px;line-height:1.45;
+  -webkit-font-smoothing:antialiased;overflow:hidden;
+  -webkit-user-select:none;user-select:none;-webkit-touch-callout:none;-webkit-tap-highlight-color:transparent;
+  touch-action:manipulation;
+}
+button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:pointer}
+button:focus-visible,input:focus-visible,[tabindex]:focus-visible{outline:2.5px solid var(--accent);outline-offset:2px;border-radius:10px}
+svg.i{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;flex:none}
+h1,h2,h3{font-family:var(--f-display);text-wrap:balance;margin:0;letter-spacing:-.01em}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+
+/* ---------- backdrop ---------- */
+.backdrop{position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden;
+  background:
+    radial-gradient(44% 54% at 6% 94%, rgba(168,230,206,.8), transparent 70%),
+    radial-gradient(40% 48% at 94% 6%, rgba(203,192,252,.85), transparent 70%),
+    radial-gradient(34% 42% at 72% 88%, rgba(253,234,160,.7), transparent 72%),
+    radial-gradient(36% 40% at 38% 22%, rgba(190,224,253,.75), transparent 70%),
+    radial-gradient(30% 34% at 18% 40%, rgba(222,214,255,.6), transparent 70%),
+    linear-gradient(160deg,#F7F5FF 0%,#F0F5FE 55%,#EEF8F5 100%);}
+.backdrop svg{position:absolute;inset:0;width:100%;height:100%}
+
+/* ---------- shell ---------- */
+.app{position:relative;z-index:1;height:100%;display:grid;grid-template-columns:var(--side-w) minmax(0,1fr);gap:14px;
+  padding:max(14px,env(safe-area-inset-top)) max(14px,env(safe-area-inset-right)) max(14px,env(safe-area-inset-bottom)) max(14px,env(safe-area-inset-left));
+  transition:grid-template-columns .28s ease}
+.glass{background:linear-gradient(140deg,rgba(255,255,255,.74),rgba(255,255,255,.4));-webkit-backdrop-filter:blur(24px) saturate(1.7);backdrop-filter:blur(24px) saturate(1.7);
+  border:1px solid var(--glass-edge);box-shadow:var(--shadow),inset 0 1px 0 rgba(255,255,255,.85)}
+
+/* ---------- sidebar ---------- */
+.side{display:flex;flex-direction:column;min-height:0;border-radius:var(--r-lg);overflow:hidden}
+.brand{display:flex;align-items:center;gap:12px;padding:18px 18px 12px;text-align:left;width:100%}
+.brand-mark{width:42px;height:42px;flex:none}
+.brand-t{font-family:var(--f-display);font-weight:750;font-size:19px;line-height:1.1;letter-spacing:-.015em}
+.brand-s{font-size:13px;color:var(--muted)}
+.search{margin:4px 14px 10px;position:relative}
+.search input{width:100%;font:inherit;font-size:15px;color:var(--ink);background:rgba(255,255,255,.55);border:1px solid var(--hair);
+  border-radius:12px;padding:10px 12px 10px 38px;-webkit-user-select:text;user-select:text;outline:none}
+.search input::placeholder{color:#9894B0}
+.search input:focus{border-color:rgba(90,103,208,.5);background:rgba(255,255,255,.8)}
+.search svg{position:absolute;left:11px;top:50%;transform:translateY(-50%);width:18px;height:18px;color:var(--muted)}
+.nav{flex:1;min-height:0;overflow:auto;padding:2px 10px 12px;-webkit-overflow-scrolling:touch;overscroll-behavior:contain}
+.chap{border-radius:14px;margin-bottom:2px}
+.chap.open{background:rgba(255,255,255,.34)}
+.chap-head{display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:10px;width:100%;padding:8px;border-radius:12px;text-align:left}
+.chap-head:hover{background:rgba(255,255,255,.4)}
+.mini{width:36px;height:36px;border-radius:10px;display:grid;place-items:center;font-family:var(--f-display);font-weight:750;font-size:16px;font-variant-numeric:tabular-nums;
+  background:linear-gradient(150deg,rgba(255,255,255,.85),rgba(255,255,255,.35));border:1px solid rgba(255,255,255,.9);box-shadow:0 2px 6px rgba(60,62,120,.1)}
+.mini[data-g="phys"]{background:linear-gradient(150deg,rgba(240,248,255,.95),rgba(170,210,250,.7))}
+.mini[data-g="org"]{background:linear-gradient(150deg,rgba(238,252,246,.95),rgba(156,224,198,.7))}
+.chap-title{font-weight:700;font-size:15px;line-height:1.2}
+.chap-count{font-size:12.5px;color:var(--muted);font-variant-numeric:tabular-nums}
+.secs{display:none;padding:2px 6px 10px 18px}
+.chap.open .secs{display:block}
+.sec{display:grid;grid-template-columns:42px 1fr auto;align-items:baseline;gap:6px;width:100%;text-align:left;padding:8px 10px;border-radius:10px;font-size:14.5px;line-height:1.25;border-left:2px solid var(--hair);border-top-left-radius:0;border-bottom-left-radius:0}
+.sec:hover{background:rgba(255,255,255,.5)}
+.sec.cur{background:var(--glass-strong);border-left-color:var(--accent);box-shadow:0 2px 10px -4px rgba(60,62,120,.25)}
+.sec-num{font-weight:700;color:var(--accent);font-variant-numeric:tabular-nums;font-size:13.5px}
+.sec-num.tag{font-size:10.5px;font-weight:700;color:var(--accent2);letter-spacing:.02em}
+.sec-count{font-size:12px;color:var(--muted);font-variant-numeric:tabular-nums}
+.side-foot{padding:10px 14px 14px;display:grid;gap:8px;border-top:1px solid var(--hair)}
+.role{display:flex;gap:10px;align-items:flex-start;font-size:13px;color:var(--muted);line-height:1.35}
+.role .dot{width:9px;height:9px;border-radius:50%;background:#BDB9D6;margin-top:4px;flex:none}
+.role[data-role="lecturer"] .dot{background:var(--accent)}
+.role[data-role="student"] .dot{background:var(--accent2)}
+.role strong{color:var(--ink);display:block;font-size:13.5px}
+.acct:empty{display:none}
+.acct .btn{height:40px;width:100%;justify-content:center;font-size:14px}
+.gl{width:18px;height:18px;flex:none}
+.f-notice .btn{margin-top:10px;height:40px;font-size:14px}
+.results{padding:0 4px}
+.res{display:block;width:100%;text-align:left;padding:10px;border-radius:12px;font-size:14px;line-height:1.3}
+.res:hover,.res:focus-visible{background:rgba(255,255,255,.55)}
+.res b{display:block;font-size:12.5px;color:var(--accent);margin-bottom:2px}
+.res span{color:var(--muted);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.empty-res{padding:14px;color:var(--muted);font-size:14px}
+
+/* ---------- main ---------- */
+.main{display:grid;grid-template-rows:auto minmax(0,1fr);gap:12px;min-width:0;min-height:0}
+.top{display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:18px;min-width:0}
+.ibtn{width:42px;height:42px;border-radius:12px;display:grid;place-items:center;flex:none;color:var(--ink)}
+.ibtn:hover{background:rgba(255,255,255,.55)}
+.ibtn:disabled{opacity:.35;cursor:default}
+.crumb{min-width:0;flex:0 1 auto;max-width:34%;padding:0 4px}
+.crumb-a{font-size:12.5px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.crumb-b{font-family:var(--f-display);font-weight:700;font-size:17px;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.chips{flex:1;min-width:0;display:flex;gap:6px;overflow-x:auto;padding:4px 2px;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+.chips::-webkit-scrollbar{display:none}
+.chip{flex:none;position:relative;height:36px;min-width:44px;padding:0 13px;border-radius:999px;font-size:14px;font-weight:700;font-variant-numeric:tabular-nums;
+  background:rgba(255,255,255,.5);border:1px solid rgba(255,255,255,.85);white-space:nowrap}
+.chip:hover{background:rgba(255,255,255,.8)}
+.chip.cur{background:var(--accent);color:#fff;border-color:var(--accent);box-shadow:0 6px 16px -6px rgba(90,103,208,.7)}
+.chip.has::after{content:"";position:absolute;top:3px;right:4px;width:8px;height:8px;border-radius:50%;background:var(--accent2);border:1.5px solid #fff}
+.top-actions{display:flex;gap:2px;flex:none}
+.view{min-height:0;position:relative}
+.hidden{display:none !important}
+
+/* ---------- home ---------- */
+.home{height:100%;overflow:auto;border-radius:var(--r-lg);-webkit-overflow-scrolling:touch}
+.home-in{max-width:1180px;margin:0 auto;padding:clamp(18px,3vw,36px)}
+.hero{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,.9fr);align-items:center;gap:20px;margin-bottom:22px}
+.hero-k{font-size:14px;color:var(--muted);margin-bottom:10px}
+.hero h1{font-size:clamp(34px,4.6vw,60px);font-weight:780;line-height:.98;letter-spacing:-.03em;margin-bottom:14px}
+.hero p{font-size:17.5px;max-width:52ch;margin:0 0 18px;color:#48455F}
+.hero-art{width:100%;max-width:460px;justify-self:end}
+.cta-row{display:flex;flex-wrap:wrap;gap:10px}
+.btn{display:inline-flex;align-items:center;gap:8px;height:46px;padding:0 18px;border-radius:14px;font-weight:700;font-size:15px}
+.btn-primary{background:var(--accent);color:#fff;box-shadow:0 10px 22px -10px rgba(90,103,208,.8)}
+.btn-primary:hover{filter:brightness(1.06)}
+.btn-glass{background:rgba(255,255,255,.6);border:1px solid rgba(255,255,255,.9)}
+.btn-glass:hover{background:rgba(255,255,255,.85)}
+.ptable{display:grid;grid-template-columns:repeat(auto-fill,minmax(176px,1fr));gap:12px}
+.tile{position:relative;display:flex;flex-direction:column;text-align:left;padding:12px 14px 14px;border-radius:16px;overflow:hidden;
+  background:linear-gradient(155deg,rgba(255,255,255,.86),rgba(255,255,255,.4) 52%,var(--tint) 125%);
+  border:1px solid rgba(255,255,255,.9);box-shadow:0 14px 30px -20px rgba(60,62,120,.5),inset 0 1px 0 #fff;transition:transform .18s ease,box-shadow .18s ease}
+.tile:hover{transform:translateY(-3px);box-shadow:0 22px 36px -22px rgba(60,62,120,.6),inset 0 1px 0 #fff}
+.tile[data-g="phys"]{--tint:rgba(160,204,250,.95)}
+.tile[data-g="org"]{--tint:rgba(148,222,194,.95)}
+.t-head{display:flex;justify-content:space-between;align-items:flex-start;font-size:13px;color:var(--muted);font-variant-numeric:tabular-nums;margin-bottom:14px}
+.t-head b{font-family:var(--f-display);font-size:40px;line-height:.95;font-weight:760;letter-spacing:-.03em;color:var(--ink)}
+.t-name{font-weight:700;font-size:16px;line-height:1.22;margin-bottom:12px;min-height:2.44em;flex:1}
+.t-wrap{display:block}
+.t-meter{display:block;height:5px;border-radius:9px;background:rgba(45,42,68,.1);overflow:hidden}
+.t-meter i{display:block;height:100%;background:var(--accent2);border-radius:9px}
+.t-meta{font-size:12.5px;color:var(--muted);margin-top:6px;font-variant-numeric:tabular-nums}
+.legend{display:flex;flex-wrap:wrap;gap:16px;margin:14px 2px 0;font-size:13.5px;color:var(--muted)}
+.legend span{display:inline-flex;align-items:center;gap:8px}
+.legend i{width:14px;height:14px;border-radius:4px;display:inline-block;border:1px solid rgba(255,255,255,.9)}
+.sec-h{display:flex;align-items:baseline;justify-content:space-between;gap:12px;margin:8px 2px 12px}
+.sec-h h2{font-size:22px;font-weight:720}
+.sec-h p{margin:0;font-size:14px;color:var(--muted)}
+
+/* ---------- stage / board ---------- */
+.stage{height:100%;display:flex;gap:12px;min-height:0}
+body.rail-right .stage{flex-direction:row-reverse}
+.rail{flex:none;width:60px;border-radius:20px;padding:8px 7px;display:flex;flex-direction:column;align-items:center;gap:4px;overflow-y:auto;overflow-x:hidden;scrollbar-width:none}
+.rail::-webkit-scrollbar{display:none}
+.rail .tb{width:46px;height:46px;border-radius:13px;display:grid;place-items:center;position:relative;color:#3C3956;flex:none}
+.rail .tb:hover{background:rgba(255,255,255,.6)}
+.rail .tb[aria-pressed="true"]{background:linear-gradient(160deg,#fff,rgba(255,255,255,.7));color:var(--accent);box-shadow:0 6px 14px -8px rgba(90,103,208,.8),inset 0 0 0 1.5px rgba(90,103,208,.45)}
+.rail .tb.opt::after{content:"";position:absolute;right:5px;bottom:5px;border:4px solid transparent;border-right-color:currentColor;border-bottom-color:currentColor;opacity:.55;border-radius:1px}
+.rail .tb:disabled{opacity:.3;cursor:default}
+.rail-sep{width:28px;height:1px;background:var(--hair);margin:4px 0;flex:none}
+.swatch{width:22px;height:22px;border-radius:50%;background:var(--sw,#33231F);box-shadow:inset 0 0 0 2px rgba(255,255,255,.9),0 0 0 1px rgba(45,42,68,.25)}
+.sizedot{display:block;border-radius:50%;background:currentColor;width:var(--d,8px);height:var(--d,8px)}
+.rail .lab{font-size:10px;font-weight:700;line-height:1;margin-top:-2px;color:var(--muted)}
+.board{flex:1;min-width:0;position:relative;border-radius:20px;overflow:hidden;background:var(--paper);
+  box-shadow:0 30px 60px -34px rgba(60,62,120,.55),0 0 0 1px rgba(255,255,255,.9),0 0 0 7px rgba(255,255,255,.35)}
+.board canvas{position:absolute;left:0;top:0;width:100%;height:100%;display:block;touch-action:none}
+.board.pan canvas{cursor:grab}
+.board.draw canvas{cursor:crosshair}
+.thumb{position:absolute;right:4px;top:0;width:8px;border-radius:8px;background:rgba(45,42,68,.22);touch-action:none;cursor:pointer;transition:background .15s, width .15s}
+.thumb:hover,.thumb.drag{background:rgba(90,103,208,.55);width:10px}
+.status{position:absolute;bottom:14px;right:22px;pointer-events:none;display:flex;align-items:center;gap:8px;padding:7px 12px;border-radius:999px;font-size:13px;font-weight:700;
+  background:rgba(255,252,249,.9);border:1px solid rgba(70,72,120,.12);box-shadow:0 6px 18px -10px rgba(60,62,120,.45);max-width:calc(100% - 40px)}
+.status span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.status .dot{width:8px;height:8px;border-radius:50%;background:#BDB9D6;flex:none}
+.status[data-s="saved"] .dot,.status[data-s="sol"] .dot{background:var(--accent2)}
+.status[data-s="saving"] .dot{background:#E0B44A;animation:pulse 1s infinite}
+.status[data-s="dirty"] .dot{background:#E0B44A}
+.status[data-s="error"] .dot{background:#A5432F}
+.status[data-s="error"]{color:#8E3A28;cursor:pointer;pointer-events:auto}
+@keyframes pulse{50%{opacity:.35}}
+.addspace{position:absolute;left:50%;bottom:16px;transform:translateX(-50%);display:flex;align-items:center;gap:8px;height:42px;padding:0 16px;border-radius:999px;font-weight:700;font-size:14px;
+  background:rgba(255,252,249,.94);border:1px solid rgba(70,72,120,.14);box-shadow:0 10px 24px -12px rgba(60,62,120,.55)}
+.zoompill{position:absolute;left:14px;bottom:14px;display:flex;align-items:center;gap:8px;height:38px;padding:0 14px;border-radius:999px;font-weight:700;font-size:13.5px;font-variant-numeric:tabular-nums;
+  background:rgba(255,252,249,.94);border:1px solid rgba(70,72,120,.14);box-shadow:0 10px 24px -12px rgba(60,62,120,.55)}
+.zoompill b{color:var(--accent)}
+.selbar{position:absolute;display:flex;gap:4px;padding:4px;border-radius:12px;background:rgba(255,252,249,.96);border:1px solid rgba(70,72,120,.16);box-shadow:0 10px 24px -12px rgba(60,62,120,.55)}
+.selbar button{height:36px;padding:0 12px;border-radius:9px;font-size:14px;font-weight:700;display:flex;align-items:center;gap:6px}
+.selbar button:hover{background:var(--wash)}
+.selbar .danger{color:#A5432F}
+
+/* ---------- popovers, dialogs, toast ---------- */
+.pop{position:fixed;z-index:40;padding:12px;border-radius:18px;min-width:200px;max-width:300px;background:var(--glass-strong);
+  -webkit-backdrop-filter:blur(24px) saturate(1.3);backdrop-filter:blur(24px) saturate(1.3);border:1px solid #fff;box-shadow:0 24px 50px -20px rgba(60,62,120,.5)}
+.pop h3{font-size:13px;font-family:var(--f-body);font-weight:700;color:var(--muted);margin:2px 4px 8px;letter-spacing:0}
+.pop-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.sw{width:44px;height:44px;border-radius:50%;display:grid;place-items:center}
+.sw i{width:30px;height:30px;border-radius:50%;background:var(--c);box-shadow:inset 0 0 0 2px rgba(255,255,255,.85),0 0 0 1px rgba(45,42,68,.2)}
+.sw[aria-pressed="true"]{box-shadow:0 0 0 2.5px var(--accent)}
+.opt-list{display:grid;gap:2px}
+.opt{display:flex;align-items:center;gap:12px;width:100%;text-align:left;padding:10px;border-radius:12px;font-size:15px;font-weight:700}
+.opt:hover{background:rgba(255,255,255,.7)}
+.opt[aria-pressed="true"]{background:#fff;color:var(--accent);box-shadow:inset 0 0 0 1.5px rgba(90,103,208,.35)}
+.opt small{display:block;font-weight:400;color:var(--muted);font-size:12.5px}
+.opt.danger{color:#A5432F}
+.seg{display:flex;gap:4px;padding:4px;background:rgba(45,42,68,.06);border-radius:12px;margin:0 2px 8px}
+.seg button{flex:1;height:36px;border-radius:9px;font-size:13.5px;font-weight:700}
+.seg button[aria-pressed="true"]{background:#fff;color:var(--accent);box-shadow:0 2px 6px rgba(60,62,120,.15)}
+.pop hr{border:0;border-top:1px solid var(--hair);margin:8px 2px}
+.scrim{position:fixed;inset:0;z-index:50;background:rgba(45,42,80,.22);display:grid;place-items:center;padding:16px}
+.dialog{width:min(440px,100%);padding:22px;border-radius:22px;background:var(--glass-strong);-webkit-backdrop-filter:blur(24px);backdrop-filter:blur(24px);border:1px solid #fff;box-shadow:var(--shadow)}
+.dialog h2{font-size:21px;margin-bottom:8px}
+.dialog p{margin:0 0 18px;color:#48455F}
+.dialog .row{display:flex;justify-content:flex-end;gap:10px}
+.btn-danger{background:#A5432F;color:#fff}
+.sheet-dlg{width:min(980px,100%);height:min(92vh,100%);display:grid;grid-template-rows:auto auto minmax(0,1fr);padding:16px;border-radius:22px;background:var(--glass-strong);-webkit-backdrop-filter:blur(24px);backdrop-filter:blur(24px);border:1px solid #fff;box-shadow:var(--shadow)}
+.sheet-h{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px}
+.sheet-h h2{font-size:21px}
+.sheet-body{overflow:auto;border-radius:14px;background:#fff;-webkit-overflow-scrolling:touch}
+.sheet-body img{display:block;width:100%;height:auto}
+.toast{position:fixed;left:50%;bottom:22px;transform:translate(-50%,20px);opacity:0;z-index:60;padding:11px 18px;border-radius:999px;font-weight:700;font-size:14px;
+  background:rgba(45,42,68,.92);color:#fff;box-shadow:0 14px 30px -12px rgba(45,42,68,.6);transition:opacity .2s, transform .2s;pointer-events:none}
+.toast.show{opacity:1;transform:translate(-50%,0)}
+.scrim-side{display:none}
+
+/* ---------- class forum ---------- */
+.forum{height:100%;overflow:auto;border-radius:var(--r-lg);-webkit-overflow-scrolling:touch}
+.forum-in{max-width:880px;margin:0 auto;padding:clamp(16px,3vw,32px)}
+.f-head{display:flex;gap:16px;align-items:flex-end;justify-content:space-between;flex-wrap:wrap;margin-bottom:18px}
+.f-k{font-size:14px;color:var(--muted);margin-bottom:6px}
+.f-head h2{font-size:clamp(26px,3.2vw,36px);font-weight:760;line-height:1.05;letter-spacing:-.02em}
+.f-head p{margin:10px 0 0;max-width:58ch;color:#48455F;font-size:16.5px}
+.f-head .btn:disabled{opacity:.45;cursor:default}
+.composer{background:var(--glass-strong);border:1px solid #fff;border-radius:20px;padding:14px;box-shadow:var(--shadow);margin-bottom:18px;display:grid;gap:10px}
+.composer textarea{width:100%;min-height:88px;resize:vertical;font:inherit;font-size:16px;line-height:1.5;color:var(--ink);background:#fff;border:1px solid var(--hair);border-radius:14px;padding:12px 14px;-webkit-user-select:text;user-select:text;outline:none}
+.composer textarea:focus{border-color:rgba(90,103,208,.55)}
+.composer textarea::placeholder{color:#9894B0}
+.pad-bar{display:flex;flex-wrap:wrap;align-items:center;gap:4px}
+.pb{height:40px;min-width:40px;padding:0 10px;border-radius:11px;display:inline-flex;align-items:center;justify-content:center;gap:6px;font-size:13.5px;font-weight:700;color:#3C3956}
+.pb:hover{background:rgba(255,255,255,.85)}
+.pb[aria-pressed="true"]{background:#fff;color:var(--accent);box-shadow:inset 0 0 0 1.5px rgba(90,103,208,.45)}
+.pb .dotc{width:22px;height:22px;border-radius:50%;background:var(--c);box-shadow:inset 0 0 0 2px #fff,0 0 0 1px rgba(45,42,68,.25)}
+.pb-sep{width:1px;height:24px;background:var(--hair);margin:0 4px}
+.pad{position:relative;border-radius:14px;overflow:hidden;background-color:#FCFCFF;border:1px solid var(--hair);
+  background-image:linear-gradient(rgba(90,103,208,.11) 1px,transparent 1px);background-size:100% 34px;background-position:0 33px}
+.pad canvas{display:block;width:100%;touch-action:none}
+.pad-hint{position:absolute;left:16px;top:12px;font-size:14px;color:var(--muted);pointer-events:none}
+.c-foot{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.c-note{flex:1;font-size:13.5px;color:var(--muted);min-width:180px}
+.c-foot .btn:disabled{opacity:.45;cursor:default}
+.c-btns{display:flex;gap:10px;margin-left:auto}
+.f-notice{padding:12px 14px;border-radius:14px;background:rgba(255,255,255,.62);border:1px solid #fff;font-size:14.5px;margin-bottom:16px;color:#48455F}
+.feed{display:grid;gap:12px}
+.post{background:rgba(255,253,250,.88);border:1px solid #fff;border-radius:18px;padding:14px 16px;box-shadow:0 14px 28px -22px rgba(60,62,120,.6)}
+.post header{display:flex;align-items:center;gap:10px;margin-bottom:8px}
+.av{width:36px;height:36px;border-radius:50%;object-fit:cover;flex:none;background:var(--sand)}
+.who{flex:1;min-width:0;line-height:1.2}
+.who b{font-size:15px}
+.who .tm{display:block;font-size:12.5px;color:var(--muted);margin-top:2px}
+.badge{display:inline-block;margin-left:6px;padding:1px 8px;border-radius:999px;font-size:11.5px;font-weight:700;background:var(--wash);color:var(--accent);vertical-align:2px}
+.post .del{font-size:13px;font-weight:700;color:var(--muted);padding:8px 10px;border-radius:9px}
+.post .del:hover{background:var(--wash);color:#A5432F}
+.post .txt{margin:0 0 8px;white-space:pre-wrap;overflow-wrap:anywhere;font-size:16px;line-height:1.55;-webkit-user-select:text;user-select:text}
+.post .txt:last-child{margin-bottom:0}
+.post canvas.ink{display:block;width:100%;border-radius:12px;background:#FCFCFF;border:1px solid var(--hair)}
+.f-empty{padding:30px 18px;text-align:center;color:var(--muted);border:1.5px dashed rgba(90,103,208,.3);border-radius:18px}
+.chip-forum{display:inline-flex;align-items:center;gap:6px}
+.chip-forum svg{width:18px;height:18px}
+.chip-forum .fc:empty{display:none}
+.chip-forum .fc{min-width:20px;height:20px;padding:0 6px;border-radius:999px;background:rgba(90,103,208,.16);font-size:12px;line-height:20px}
+.chip-forum.cur .fc{background:rgba(255,255,255,.28)}
+.sec-f{display:block;font-size:12px;color:var(--muted);margin-top:3px}
+.sec-f:empty{display:none}
+.recent{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:10px;margin-bottom:6px}
+.rec{display:flex;flex-direction:column;gap:6px;text-align:left;padding:13px 14px;border-radius:16px;background:rgba(255,255,255,.6);border:1px solid #fff;font-size:14.5px;line-height:1.35}
+.rec:hover{background:rgba(255,255,255,.85)}
+.rec .r-sec{font-size:12.5px;font-weight:700;color:var(--accent)}
+.rec .r-txt{display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+.rec .r-by{font-size:12.5px;color:var(--muted)}
+
+/* ---------- motion ---------- */
+.bub{animation:rise 4.2s ease-in infinite;transform-box:fill-box}
+.bub:nth-child(2){animation-delay:1.1s}.bub:nth-child(3){animation-delay:2.3s}.bub:nth-child(4){animation-delay:3.1s}
+@keyframes rise{0%{transform:translateY(0);opacity:0}15%{opacity:.9}100%{transform:translateY(-70px);opacity:0}}
+@media (prefers-reduced-motion:reduce){.bub{animation:none}.tile,.app{transition:none}}
+
+/* ---------- focus mode & responsive ---------- */
+body.focus .app{grid-template-columns:0 minmax(0,1fr);gap:0}
+body.focus .side{visibility:hidden}
+@media (max-width:1080px){
+  .app{grid-template-columns:minmax(0,1fr)}
+  body.focus .app{grid-template-columns:minmax(0,1fr)}
+  .side{position:fixed;z-index:45;left:10px;top:10px;bottom:10px;width:min(330px,86vw);transform:translateX(-112%);transition:transform .26s ease;visibility:visible !important;background:var(--glass-strong)}
+  body.drawer .side{transform:none}
+  body.drawer .scrim-side{display:block;position:fixed;inset:0;z-index:44;background:rgba(45,42,80,.18)}
+  .crumb{max-width:30%}
+  #focusBtn{display:none}
+}
+@media (max-width:760px){
+  .hero{grid-template-columns:1fr}
+  .hero-art{justify-self:center;max-width:340px;order:-1}
+  .crumb{display:none}
+  .stage{flex-direction:column-reverse !important;gap:8px}
+  .rail{width:auto;height:auto;flex-direction:row;padding:6px;overflow-x:auto;overflow-y:hidden;border-radius:18px}
+  .rail-sep{width:1px;height:28px;margin:0 4px}
+  .status{bottom:8px;right:10px;font-size:12px}
+  .app{gap:8px;padding:8px}
+  .main{gap:8px}
+}
+</style>
+</head>
+<body>
+<div class="backdrop" aria-hidden="true">
+  <svg viewBox="0 0 1440 900" preserveAspectRatio="xMidYMid slice">
+    <defs>
+      <radialGradient id="gC" cx=".35" cy=".3" r=".75"><stop offset="0" stop-color="#9C99C8"/><stop offset=".55" stop-color="#4B4A72"/><stop offset="1" stop-color="#2D2A44"/></radialGradient>
+      <radialGradient id="gH" cx=".35" cy=".3" r=".75"><stop offset="0" stop-color="#fff"/><stop offset=".7" stop-color="#EEF0FA"/><stop offset="1" stop-color="#CDD2EA"/></radialGradient>
+      <radialGradient id="gO" cx=".35" cy=".3" r=".75"><stop offset="0" stop-color="#DDEEFF"/><stop offset=".6" stop-color="#8CC0F0"/><stop offset="1" stop-color="#4C8FD6"/></radialGradient>
+      <radialGradient id="gN" cx=".35" cy=".3" r=".75"><stop offset="0" stop-color="#D8F5EA"/><stop offset=".6" stop-color="#8FD8BE"/><stop offset="1" stop-color="#3FA58E"/></radialGradient>
+      <linearGradient id="liqR" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#E4DEFF" stop-opacity=".85"/><stop offset="1" stop-color="#ADA0F2" stop-opacity=".9"/></linearGradient>
+      <linearGradient id="liqP" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#D9F6EC" stop-opacity=".85"/><stop offset="1" stop-color="#8FD6BF" stop-opacity=".9"/></linearGradient>
+    </defs>
+    <!-- benzene rings drifting in the background -->
+    <g fill="none" stroke="#5A67D0" stroke-opacity=".16" stroke-width="2.2">
+      <path d="M560 70l52 30v60l-52 30-52-30v-60z"/><circle cx="560" cy="130" r="30"/>
+      <path d="M1240 470l40 23v46l-40 23-40-23v-46z"/><path d="M1240 486v0" />
+      <path d="M760 790l46 26.5v53l-46 26.5-46-26.5v-53z"/>
+      <path d="M612 100l52-30 52 30"/>
+    </g>
+    <!-- ball-and-stick: ethanol, top right -->
+    <g opacity=".55" transform="translate(1060 60) scale(1.7)">
+      <g stroke="#5C5B85" stroke-opacity=".5" stroke-width="6" stroke-linecap="round">
+        <path d="M40 60L100 90M100 90L160 58M160 58L198 78M40 60L14 26M40 60L10 84M40 60L52 18M100 90L88 134M100 90L126 128"/>
+      </g>
+      <circle cx="14" cy="26" r="11" fill="url(#gH)"/><circle cx="10" cy="84" r="11" fill="url(#gH)"/><circle cx="52" cy="18" r="11" fill="url(#gH)"/>
+      <circle cx="88" cy="134" r="11" fill="url(#gH)"/><circle cx="126" cy="128" r="11" fill="url(#gH)"/><circle cx="198" cy="78" r="11" fill="url(#gH)"/>
+      <circle cx="40" cy="60" r="18" fill="url(#gC)"/><circle cx="100" cy="90" r="18" fill="url(#gC)"/><circle cx="160" cy="58" r="17" fill="url(#gO)"/>
+    </g>
+    <!-- conical flask, bottom left (seen through the frosted sidebar) -->
+    <g transform="translate(40 470) scale(1.55)" opacity=".8">
+      <path d="M86 150Q140 140 194 150L228 232Q236 252 212 252H68Q44 252 52 232Z" fill="url(#liqR)"/>
+      <path d="M118 12V96L52 232Q44 252 68 252H212Q236 252 228 232L162 96V12" fill="rgba(255,255,255,.28)" stroke="#5C5B85" stroke-opacity=".38" stroke-width="2.6" stroke-linejoin="round"/>
+      <rect x="110" y="4" width="60" height="12" rx="6" fill="rgba(255,255,255,.5)" stroke="#5C5B85" stroke-opacity=".38" stroke-width="2.4"/>
+      <path d="M128 24V98L74 214" fill="none" stroke="#fff" stroke-opacity=".75" stroke-width="4" stroke-linecap="round"/>
+    </g>
+    <!-- round-bottom flask, bottom right -->
+    <g transform="translate(1180 560) scale(1.25)" opacity=".7">
+      <clipPath id="rbClip"><circle cx="110" cy="190" r="86"/></clipPath>
+      <rect x="20" y="196" width="180" height="90" fill="url(#liqP)" clip-path="url(#rbClip)"/>
+      <path d="M92 20V108A86 86 0 1 0 128 108V20" fill="rgba(255,255,255,.26)" stroke="#5C5B85" stroke-opacity=".36" stroke-width="2.6"/>
+      <rect x="84" y="12" width="52" height="12" rx="6" fill="rgba(255,255,255,.5)" stroke="#5C5B85" stroke-opacity=".36" stroke-width="2.4"/>
+      <path d="M58 150A70 70 0 0 0 50 214" fill="none" stroke="#fff" stroke-opacity=".8" stroke-width="5" stroke-linecap="round"/>
+    </g>
+  </svg>
+</div>
+
+<div class="app">
+  <aside class="side glass" id="side" aria-label="Chapters">
+    <button class="brand" id="brand" type="button" aria-label="Go to the chapter overview">
+      <svg class="brand-mark" viewBox="0 0 48 48" aria-hidden="true">
+        <defs><linearGradient id="bm" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#DCD6FF"/><stop offset="1" stop-color="#8F84E8"/></linearGradient></defs>
+        <rect x="1" y="1" width="46" height="46" rx="13" fill="#fff" fill-opacity=".7" stroke="#fff"/>
+        <path d="M15.5 29.5Q24 27.5 32.5 29.5L35.6 36Q36.6 38.6 33.8 38.6H14.2Q11.4 38.6 12.4 36Z" fill="url(#bm)"/>
+        <path d="M20 9.5V20L12.4 36Q11.4 38.6 14.2 38.6H33.8Q36.6 38.6 35.6 36L28 20V9.5M18 9.5h12" fill="none" stroke="#2D2A44" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+        <circle cx="22" cy="33.5" r="1.6" fill="#fff"/><circle cx="27" cy="31.6" r="1.1" fill="#fff"/>
+      </svg>
+      <span><span class="brand-t">EC025 Tutorials</span><br><span class="brand-s">Chemistry 2, Semester 2</span></span>
+    </button>
+    <label class="search">
+      <span class="sr">Search questions</span>
+      <svg class="i" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path d="M16 16l4.5 4.5"/></svg>
+      <input id="q" type="search" placeholder="Search questions, e.g. Born-Haber" autocomplete="off" spellcheck="false">
+    </label>
+    <nav class="nav" id="nav"></nav>
+    <div class="side-foot">
+      <div class="role" id="role" data-role="pending"><span class="dot"></span><span><strong id="roleT">Connecting…</strong><span id="roleS">Checking who can write on the boards.</span></span></div>
+      <div class="acct" id="acct"></div>
+    </div>
+  </aside>
+  <div class="scrim-side" id="sideScrim"></div>
+
+  <main class="main">
+    <header class="top glass">
+      <button class="ibtn" id="menuBtn" type="button" aria-label="Show or hide chapters" title="Chapters">
+        <svg class="i" viewBox="0 0 24 24"><path d="M4 6.5h16M4 12h16M4 17.5h10"/></svg>
+      </button>
+      <div class="crumb" id="crumb"><div class="crumb-a">EC025 Chemistry 2</div><div class="crumb-b">Tutorial book</div></div>
+      <div class="chips" id="chips" role="toolbar" aria-label="Questions in this section"></div>
+      <div class="top-actions">
+        <button class="ibtn" id="prevBtn" type="button" aria-label="Previous question" title="Previous question (←)"><svg class="i" viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg></button>
+        <button class="ibtn" id="nextBtn" type="button" aria-label="Next question" title="Next question (→)"><svg class="i" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg></button>
+        <button class="ibtn" id="sheetBtn" type="button" aria-label="Open the data sheet" title="Data sheet: atomic masses, constants, E° values"><svg class="i" viewBox="0 0 24 24"><path d="M9.5 3.5h5M10.5 3.5v5.2L5.2 18a1.8 1.8 0 0 0 1.6 2.6h10.4a1.8 1.8 0 0 0 1.6-2.6l-5.3-9.3V3.5"/><path d="M7.4 14.5h9.2"/></svg></button>
+        <button class="ibtn" id="focusBtn" type="button" aria-label="Focus mode: hide the chapter list" title="Focus mode"><svg class="i" viewBox="0 0 24 24"><path d="M4 9V5h4M20 9V5h-4M4 15v4h4M20 15v4h-4"/></svg></button>
+      </div>
+    </header>
+
+    <section class="view" id="viewHome">
+      <div class="home glass" id="homePanel"></div>
+    </section>
+
+    <section class="view hidden" id="viewForum">
+      <div class="forum glass" id="forum">
+        <div class="forum-in">
+          <header class="f-head">
+            <div><div class="f-k" id="fK">Class forum</div><h2 id="fTitle">Section</h2><p id="fPrompt"></p></div>
+            <button class="btn btn-primary" type="button" id="fWrite"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20l1.2-4.2L15.6 5.4a2 2 0 0 1 2.9 0l.1.1a2 2 0 0 1 0 2.9L8.2 18.8 4 20z"/></svg>Write a reflection</button>
+          </header>
+          <div class="f-notice hidden" id="fNotice" role="status"></div>
+          <div class="composer hidden" id="composer">
+            <label class="sr" for="fText">Type your reflection</label>
+            <textarea id="fText" maxlength="2000" placeholder="Type here, or write by hand on the lined pad below. You can use both."></textarea>
+            <div class="pad-bar" id="padBar" role="toolbar" aria-label="Handwriting tools">
+              <button class="pb" type="button" data-pt="pen" aria-pressed="true" aria-label="Pen" title="Pen"><svg class="i" viewBox="0 0 24 24"><path d="M4 20l1.2-4.2L15.6 5.4a2 2 0 0 1 2.9 0l.1.1a2 2 0 0 1 0 2.9L8.2 18.8 4 20z"/><path d="M13.8 7.2l3 3"/></svg></button>
+              <button class="pb" type="button" data-pt="eraser" aria-pressed="false" aria-label="Eraser" title="Eraser"><svg class="i" viewBox="0 0 24 24"><path d="M8.5 19.5h11"/><path d="M4.8 14.6l8.8-8.8a2 2 0 0 1 2.8 0l2.8 2.8a2 2 0 0 1 0 2.8l-8 8H8.6l-3.8-3.8a.7.7 0 0 1 0-1z"/></svg></button>
+              <span class="pb-sep"></span>
+              <button class="pb" type="button" data-pc="#33231F" aria-pressed="true" aria-label="Cocoa ink" style="--c:#33231F"><span class="dotc"></span></button>
+              <button class="pb" type="button" data-pc="#2B5FA6" aria-pressed="false" aria-label="Blue ink" style="--c:#2B5FA6"><span class="dotc"></span></button>
+              <button class="pb" type="button" data-pc="#C2384B" aria-pressed="false" aria-label="Red ink" style="--c:#C2384B"><span class="dotc"></span></button>
+              <button class="pb" type="button" data-pc="#2F8A5B" aria-pressed="false" aria-label="Green ink" style="--c:#2F8A5B"><span class="dotc"></span></button>
+              <span class="pb-sep"></span>
+              <button class="pb" type="button" id="pUndo" aria-label="Undo" title="Undo"><svg class="i" viewBox="0 0 24 24"><path d="M9 14L4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H11"/></svg></button>
+              <button class="pb" type="button" id="pClear">Clear pad</button>
+              <button class="pb" type="button" id="pMore"><svg class="i" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>More space</button>
+            </div>
+            <div class="pad" id="pad"><canvas id="padC" aria-label="Handwriting pad"></canvas><span class="pad-hint" id="padHint">Write here with your stylus or finger</span></div>
+            <div class="c-foot"><span class="c-note">Everyone who can open this page will see your name and post.</span>
+              <span class="c-btns"><button class="btn btn-glass" type="button" id="fCancel">Cancel</button><button class="btn btn-primary" type="button" id="fPost">Post</button></span></div>
+          </div>
+          <div class="feed" id="feed" aria-live="polite"></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="view hidden" id="viewBoard">
+      <div class="stage">
+        <nav class="rail glass" id="rail" aria-label="Whiteboard tools"></nav>
+        <div class="board draw" id="board">
+          <canvas id="cBase" aria-hidden="true"></canvas>
+          <canvas id="cLive" role="img" aria-label="Whiteboard for this question"></canvas>
+          <div class="thumb" id="thumb" aria-hidden="true"></div>
+          <div class="status" id="status" data-s="idle" role="status" aria-live="polite"><i class="dot"></i><span id="statusT">Loading…</span></div>
+          <button class="addspace hidden" id="addSpace" type="button"><svg class="i" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>Add writing space</button>
+          <button class="zoompill hidden" id="zoomPill" type="button" aria-label="Reset zoom to fit the width"><b id="zoomT">100%</b>Fit width</button>
+          <div class="selbar hidden" id="selbar">
+            <button type="button" id="selDel" class="danger"><svg class="i" viewBox="0 0 24 24"><path d="M4.5 7h15M9.5 7V4.5h5V7M6.5 7l.9 12.2a1.5 1.5 0 0 0 1.5 1.3h6.2a1.5 1.5 0 0 0 1.5-1.3L17.5 7"/></svg>Delete</button>
+            <button type="button" id="selDup"><svg class="i" viewBox="0 0 24 24"><rect x="8" y="8" width="12" height="12" rx="2.5"/><path d="M16 8V6.5A2.5 2.5 0 0 0 13.5 4h-7A2.5 2.5 0 0 0 4 6.5v7A2.5 2.5 0 0 0 6.5 16H8"/></svg>Duplicate</button>
+            <button type="button" id="selDone">Done</button>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+</div>
+
+<div class="pop hidden" id="pop" role="dialog" aria-modal="false"></div>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+<div id="modalRoot"></div>
+
+<script src="config.js"></script>
+<script src="firebase.js"></script>
+<script>
+'use strict';
+/* =====================================================================
+   EC025 Tutorial Board
+   Questions come from data.json (cropped from the tutorial book).
+   Ink is stored as vector strokes so it stays editable:
+     meta/{qid}            small summary, one listener feeds the "solved" dots
+     ink/{qid}             strokes (+ ink/{qid}/more/{n} when very long)
+   Only Editors/Owner can write (declared rule); everyone else reads.
+   ===================================================================== */
+const $ = (s, r = document) => r.querySelector(s);
+const W = 1000, QX = 40, QY = 40, QW = 920;           // board is 1000 logical units wide
+const INK = [['#33231F','Cocoa'],['#2B5FA6','Blue'],['#C2384B','Red'],['#2F8A5B','Green'],['#7A4FA8','Purple'],['#D2802A','Orange'],['#A67B52','Caramel'],['#8C6F68','Taupe']];
+const HL = [['#F5D547','Yellow'],['#F7B267','Apricot'],['#8FDCB4','Mint'],['#9CC8F2','Sky']];
+const SIZES = { pen: [2.2, 3.4, 5.6], hl: [14, 22, 34], eraser: [10, 22, 44] };
+const GROUP = n => n <= 3 ? 'phys' : 'org';
+const TYPES = new Set(['pen','hl','curly','line','arrow','eq','ring']);
+const ICON = {
+  pen:'<path d="M4 20l1.2-4.2L15.6 5.4a2 2 0 0 1 2.9 0l.1.1a2 2 0 0 1 0 2.9L8.2 18.8 4 20z"/><path d="M13.8 7.2l3 3"/>',
+  hl:'<path d="M9.2 13.8l-3 3V20h3.2l3-3"/><path d="M9.2 13.8l7.3-7.3a2.1 2.1 0 0 1 3 3L12.4 17"/><path d="M9.2 13.8l3.2 3.2"/><path d="M3.5 21h8"/>',
+  curly:'<path d="M4.5 18.5C5.5 10 11 6 18.5 8.5"/><path d="M14.6 5.2l4.2 3.4-4.4 2.6"/>',
+  arrow:'<path d="M4 12h15"/><path d="M15 8l4 4-4 4"/>',
+  eq:'<path d="M4 9.5h15l-4-3.5"/><path d="M20 14.5H5l4 3.5"/>',
+  line:'<path d="M5 18L19 6"/>',
+  kekule:'<path d="M12 3.5l7.4 4.25v8.5L12 20.5l-7.4-4.25v-8.5z"/><path d="M12 6.6l4.8 2.8M16.8 14.6L12 17.4M7.2 14.6V9.4"/>',
+  circle:'<path d="M12 3.5l7.4 4.25v8.5L12 20.5l-7.4-4.25v-8.5z"/><circle cx="12" cy="12" r="4.3"/>',
+  hex:'<path d="M12 3.5l7.4 4.25v8.5L12 20.5l-7.4-4.25v-8.5z"/>',
+  pent:'<path d="M12 4l7.6 5.5-2.9 9H7.3l-2.9-9z"/>',
+  eraser:'<path d="M8.5 19.5h11"/><path d="M4.8 14.6l8.8-8.8a2 2 0 0 1 2.8 0l2.8 2.8a2 2 0 0 1 0 2.8l-8 8H8.6l-3.8-3.8a.7.7 0 0 1 0-1z"/><path d="M9.5 10l5.5 5.5"/>',
+  select:'<path d="M7 16.5C4.5 15.4 3 13.6 3 11.5 3 7.4 7 4.5 12 4.5s9 2.9 9 7-4 7-9 7c-1.4 0-2.7-.2-3.9-.6"/><path d="M8.5 15.8c-1.5.6-2 1.7-1.3 2.7.7 1 .3 2.3-1.2 2.8"/>',
+  undo:'<path d="M9 14L4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H11"/>',
+  redo:'<path d="M15 14l5-5-5-5"/><path d="M20 9H9.5a5.5 5.5 0 0 0 0 11H13"/>',
+  more:'<circle cx="5.5" cy="12" r="1.5" fill="currentColor" stroke="none"/><circle cx="12" cy="12" r="1.5" fill="currentColor" stroke="none"/><circle cx="18.5" cy="12" r="1.5" fill="currentColor" stroke="none"/>',
+  eye:'<path d="M2.5 12s3.5-6.5 9.5-6.5 9.5 6.5 9.5 6.5-3.5 6.5-9.5 6.5S2.5 12 2.5 12z"/><circle cx="12" cy="12" r="3"/>',
+  eyeoff:'<path d="M2.5 12s3.5-6.5 9.5-6.5c1.6 0 3 .4 4.3 1M21.5 12s-3.5 6.5-9.5 6.5c-1.6 0-3-.4-4.3-1"/><path d="M4 4l16 16"/>',
+  practice:'<path d="M4 6h9M4 10h6M4 14h4"/><path d="M13 19.5l.8-3 5.6-5.6a1.6 1.6 0 0 1 2.2 2.2L16 18.7l-3 .8z"/>',
+  download:'<path d="M12 4v11"/><path d="M7.5 10.5L12 15l4.5-4.5"/><path d="M5 19.5h14"/>',
+  plus:'<path d="M12 5v14M5 12h14"/>',
+  trash:'<path d="M4.5 7h15M9.5 7V4.5h5V7M6.5 7l.9 12.2a1.5 1.5 0 0 0 1.5 1.3h6.2a1.5 1.5 0 0 0 1.5-1.3L17.5 7"/>',
+  grid:'<rect x="4" y="4" width="16" height="16" rx="2"/><path d="M4 9.3h16M4 14.6h16M9.3 4v16M14.6 4v16"/>',
+  finger:'<path d="M9 11V5.5a1.5 1.5 0 0 1 3 0V11m0-2a1.5 1.5 0 0 1 3 0v2m0-1a1.5 1.5 0 0 1 3 0v4.5a6 6 0 0 1-6 6h-.6a6 6 0 0 1-4.9-2.5L4.3 14a1.6 1.6 0 0 1 2.4-2l2.3 2"/>',
+  side:'<rect x="3.5" y="4.5" width="17" height="15" rx="2.5"/><path d="M9 4.5v15"/>',
+  forum:'<path d="M5 18.5V7.5A2.5 2.5 0 0 1 7.5 5h9A2.5 2.5 0 0 1 19 7.5v6a2.5 2.5 0 0 1-2.5 2.5H9z"/><path d="M8.5 9.5h7M8.5 12.5h4.5"/>'
+};
+const svgI = (k, cls = 'i') => `<svg class="${cls}" viewBox="0 0 24 24" aria-hidden="true">${ICON[k]}</svg>`;
+const esc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+const LS = {
+  get(k, d) { try { const v = localStorage.getItem('ec025:' + k); return v == null ? d : JSON.parse(v); } catch { return d; } },
+  set(k, v) { try { localStorage.setItem('ec025:' + k, JSON.stringify(v)); return true; } catch { return false; } },
+  del(k) { try { localStorage.removeItem('ec025:' + k); } catch {} },
+  keys(prefix) { const out = []; try { for (let i = 0; i < localStorage.length; i++) { const k = localStorage.key(i); if (k && k.startsWith('ec025:' + prefix)) out.push(k.slice(6 + prefix.length)); } } catch {} return out; }
+};
+
+/* ---------------- state ---------------- */
+const S = {
+  role: 'pending',               // lecturer | student | local | pending
+  db: null, user: null, dl: null,
+  readOnly: false,
+  meta: new Map(),               // qid -> {rev, n, at}
+  cur: null,
+  tool: LS.get('tool', 'pen'), arrowKind: LS.get('arrowKind', 'curly'), ringKind: LS.get('ringKind', 'kekule'),
+  color: LS.get('color', { pen: INK[0][0], hl: HL[0][0] }), size: LS.get('size', { pen: 1, hl: 1, eraser: 1 }),
+  penSeen: LS.get('penSeen', false), fingerDraw: LS.get('fingerDraw', false),
+  showSol: true, practice: false,
+  rail: LS.get('rail', 'left'),
+  open: new Set(),
+};
+let DATA = null; const ITEMS = []; const BYID = new Map(); const CHAPTERS = new Map(); const SECS = new Map();
+S.view = 'home'; S.fsec = null;
+const docs = new Map(), pdocs = new Map();
+let readyResolve; const ready = new Promise(r => (readyResolve = r));
+
+/* ---------------- stroke model + encoding ---------------- */
+let sid = 1;
+function mkStroke(o) { o.id = sid++; o._p = o._h = o._bb = o._seg = null; return o; }
+function encPts(p) {
+  const out = []; let px = 0, py = 0, pp = 0;
+  for (let i = 0; i < p.length; i += 3) {
+    const x = Math.round(p[i] * 2), y = Math.round(p[i + 1] * 2), q = Math.round(p[i + 2] * 15);
+    const dq = q - pp; out.push(dq ? `${x - px},${y - py},${dq}` : `${x - px},${y - py}`); px = x; py = y; pp = q;
+  }
+  return out.join(' ');
+}
+function decPts(str) {
+  const pts = []; let x = 0, y = 0, q = 0;
+  for (const tok of String(str).split(' ')) {
+    const a = tok.split(','); const dx = +a[0], dy = +a[1], dq = a.length > 2 ? +a[2] : 0;
+    if (!Number.isFinite(dx) || !Number.isFinite(dy) || !Number.isFinite(dq)) return null;
+    x += dx; y += dy; q += dq; pts.push(x / 2, y / 2, clamp(q / 15, 0, 1));
+    if (pts.length > 60000) return null;
+  }
+  return pts;
+}
+const encStroke = s => [s.t, s.c.slice(1), +s.w.toFixed(2), s.k || '', encPts(s.pts)].join('|');
+function decStroke(str) {
+  if (typeof str !== 'string') return null;
+  const [t, c, w, k, pts] = str.split('|');
+  if (!TYPES.has(t) || !/^[0-9a-fA-F]{6}$/.test(c || '') || !(+w > 0 && +w < 80)) return null;
+  const p = decPts(pts || ''); if (!p || !p.length) return null;
+  return mkStroke({ t, c: '#' + c, w: +w, k: k && /^[a-z]{2,8}$/.test(k) ? k : undefined, pts: p });
+}
+function simplify(p, eps) {           // Ramer–Douglas–Peucker on x,y (keeps pressure of kept points)
+  const n = p.length / 3; if (n < 3) return p;
+  const keep = new Uint8Array(n); keep[0] = keep[n - 1] = 1;
+  const stack = [[0, n - 1]];
+  while (stack.length) {
+    const [a, b] = stack.pop(); let md = 0, mi = -1;
+    const ax = p[a * 3], ay = p[a * 3 + 1], bx = p[b * 3], by = p[b * 3 + 1];
+    const dx = bx - ax, dy = by - ay, L = Math.hypot(dx, dy) || 1e-6;
+    for (let i = a + 1; i < b; i++) {
+      const d = Math.abs(dy * p[i * 3] - dx * p[i * 3 + 1] + bx * ay - by * ax) / L
+        + Math.abs(p[i * 3 + 2] - (p[a * 3 + 2] + p[b * 3 + 2]) / 2) * 1.2;
+      if (d > md) { md = d; mi = i; }
+    }
+    if (md > eps && mi > 0) { keep[mi] = 1; stack.push([a, mi], [mi, b]); }
+  }
+  const out = []; for (let i = 0; i < n; i++) if (keep[i]) out.push(p[i * 3], p[i * 3 + 1], p[i * 3 + 2]);
+  return out;
+}
+
+/* ---------------- geometry for shapes ---------------- */
+function shapeSegs(s) {          // flat [x1,y1,x2,y2,...]
+  const p = s.pts, x1 = p[0], y1 = p[1], x2 = p[3], y2 = p[4];
+  const seg = [];
+  if (s.t === 'line') seg.push(x1, y1, x2, y2);
+  else if (s.t === 'arrow' || s.t === 'eq') {
+    const a = Math.atan2(y2 - y1, x2 - x1), L = Math.hypot(x2 - x1, y2 - y1), hl = Math.min(16 + s.w * 1.6, L * 0.45), ha = 0.46;
+    if (s.t === 'arrow') {
+      seg.push(x1, y1, x2, y2,
+        x2, y2, x2 - hl * Math.cos(a - ha), y2 - hl * Math.sin(a - ha),
+        x2, y2, x2 - hl * Math.cos(a + ha), y2 - hl * Math.sin(a + ha));
+    } else {
+      // ⇌ : upper line runs forward with a half-head pointing outwards, lower line runs back
+      const o = 4 + s.w * 0.9, ux = Math.cos(a), uy = Math.sin(a), nx = -uy, ny = ux;
+      const bl = hl * Math.cos(ha), bw = hl * Math.sin(ha);
+      const ax1 = x1 - nx * o, ay1 = y1 - ny * o, ax2 = x2 - nx * o, ay2 = y2 - ny * o;
+      const bx1 = x1 + nx * o, by1 = y1 + ny * o, bx2 = x2 + nx * o, by2 = y2 + ny * o;
+      seg.push(ax1, ay1, ax2, ay2, ax2, ay2, ax2 - ux * bl - nx * bw, ay2 - uy * bl - ny * bw,
+        bx1, by1, bx2, by2, bx1, by1, bx1 + ux * bl + nx * bw, by1 + uy * bl + ny * bw);
+    }
+  } else if (s.t === 'ring') {
+    const r = Math.hypot(x2 - x1, y2 - y1), rot = Math.atan2(y2 - y1, x2 - x1);
+    const k = s.k || 'kekule', nV = k === 'pent' ? 5 : 6, V = [];
+    for (let i = 0; i < nV; i++) { const a = rot + i * 2 * Math.PI / nV; V.push([x1 + r * Math.cos(a), y1 + r * Math.sin(a)]); }
+    for (let i = 0; i < nV; i++) { const A = V[i], B = V[(i + 1) % nV]; seg.push(A[0], A[1], B[0], B[1]); }
+    if (k === 'kekule') {
+      for (let i = 0; i < 6; i += 2) {
+        const A = V[i], B = V[i + 1], f = 0.2, sh = 0.17;
+        const ax = A[0] + (x1 - A[0]) * f, ay = A[1] + (y1 - A[1]) * f, bx = B[0] + (x1 - B[0]) * f, by = B[1] + (y1 - B[1]) * f;
+        seg.push(ax + (bx - ax) * sh, ay + (by - ay) * sh, bx - (bx - ax) * sh, by - (by - ay) * sh);
+      }
+    }
+  }
+  return seg;
+}
+function ringCircle(s) { if (s.t !== 'ring' || s.k !== 'circle') return 0; const p = s.pts; return Math.hypot(p[3] - p[0], p[4] - p[1]) * 0.58; }
+
+/* ---------------- perfect-freehand (with a plain fallback) ---------------- */
+let getStroke = null;
+import('https://cdn.jsdelivr.net/npm/perfect-freehand@1.2.2/+esm')
+  .then(m => { getStroke = m.getStroke || (m.default && m.default.getStroke) || m.default; invalidateAll(); Board.dirtyBase();
+    for (const s of Pad.strokes) invalidate(s); for (const v of F.ink.values()) v.strokes.forEach(invalidate); Pad.draw(); document.querySelectorAll('#feed canvas.ink').forEach(paintInk); })
+  .catch(() => {});
+function pfPath(p, w, last) {
+  const pts = []; for (let i = 0; i < p.length; i += 3) pts.push([p[i], p[i + 1], p[i + 2]]);
+  if (pts.length === 1) pts.push([p[0] + 0.01, p[1] + 0.01, p[2]]);
+  const o = getStroke(pts, { size: w, thinning: 0.62, smoothing: 0.52, streamline: 0.3, simulatePressure: false, last,
+    start: { cap: true, taper: 0 }, end: { cap: true, taper: 0 } });
+  const path = new Path2D(); if (!o.length) return path;
+  path.moveTo(o[0][0], o[0][1]);
+  for (let i = 1; i < o.length; i++) { const a = o[i - 1], b = o[i]; path.quadraticCurveTo(a[0], a[1], (a[0] + b[0]) / 2, (a[1] + b[1]) / 2); }
+  const a = o[o.length - 1], b = o[0]; path.quadraticCurveTo(a[0], a[1], (a[0] + b[0]) / 2, (a[1] + b[1]) / 2);
+  path.closePath(); return path;
+}
+function polyPath(p) {
+  const path = new Path2D(); path.moveTo(p[0], p[1]);
+  if (p.length === 3) { path.lineTo(p[0] + 0.01, p[1]); return path; }
+  for (let i = 3; i < p.length - 3; i += 3) { const mx = (p[i] + p[i + 3]) / 2, my = (p[i + 1] + p[i + 4]) / 2; path.quadraticCurveTo(p[i], p[i + 1], mx, my); }
+  path.lineTo(p[p.length - 3], p[p.length - 2]); return path;
+}
+function headPath(s) {         // arrowhead for curly (mechanism) arrows
+  const p = s.pts, n = p.length / 3; const ex = p[(n - 1) * 3], ey = p[(n - 1) * 3 + 1];
+  let j = n - 1, bx = ex, by = ey;
+  while (j > 0 && Math.hypot(ex - bx, ey - by) < 14) { j--; bx = p[j * 3]; by = p[j * 3 + 1]; }
+  const a = Math.atan2(ey - by, ex - bx), hl = 12 + s.w * 1.8, ha = 0.5, path = new Path2D();
+  path.moveTo(ex - hl * Math.cos(a - ha), ey - hl * Math.sin(a - ha)); path.lineTo(ex, ey); path.lineTo(ex - hl * Math.cos(a + ha), ey - hl * Math.sin(a + ha));
+  return path;
+}
+function strokeGeom(s) {
+  if (s._p) return;
+  if (s.t === 'pen' || s.t === 'curly') { s._p = getStroke ? pfPath(s.pts, s.w, true) : polyPath(s.pts); s._fb = !getStroke; }
+  else if (s.t === 'hl') s._p = polyPath(s.pts);
+  else { s._seg = shapeSegs(s); const path = new Path2D(); for (let i = 0; i < s._seg.length; i += 4) { path.moveTo(s._seg[i], s._seg[i + 1]); path.lineTo(s._seg[i + 2], s._seg[i + 3]); }
+    const rc = ringCircle(s); if (rc) { path.moveTo(s.pts[0] + rc, s.pts[1]); path.arc(s.pts[0], s.pts[1], rc, 0, Math.PI * 2); } s._p = path; }
+  if (s.t === 'curly') s._h = headPath(s);
+  if (!s._bb) bbox(s);
+}
+function bbox(s) {
+  let x0 = 1e9, y0 = 1e9, x1 = -1e9, y1 = -1e9; const pad = s.w + (s.t === 'curly' ? 20 : 4);
+  if (s.t === 'ring') { const r = Math.hypot(s.pts[3] - s.pts[0], s.pts[4] - s.pts[1]); x0 = s.pts[0] - r; x1 = s.pts[0] + r; y0 = s.pts[1] - r; y1 = s.pts[1] + r; }
+  else for (let i = 0; i < s.pts.length; i += 3) { const x = s.pts[i], y = s.pts[i + 1]; if (x < x0) x0 = x; if (x > x1) x1 = x; if (y < y0) y0 = y; if (y > y1) y1 = y; }
+  if (s.t === 'arrow' || s.t === 'eq') { x0 -= 24; y0 -= 24; x1 += 24; y1 += 24; }
+  s._bb = [x0 - pad, y0 - pad, x1 + pad, y1 + pad];
+}
+function invalidate(s) { s._p = s._h = s._bb = s._seg = null; }
+function invalidateAll() { for (const m of [docs, pdocs]) for (const d of m.values()) for (const s of d.strokes) invalidate(s); }
+function drawStroke(ctx, s) {
+  strokeGeom(s);
+  if (s.t === 'pen' || s.t === 'curly') {
+    if (s._fb) { ctx.strokeStyle = s.c; ctx.lineWidth = s.w; ctx.lineCap = ctx.lineJoin = 'round'; ctx.stroke(s._p); }
+    else { ctx.fillStyle = s.c; ctx.fill(s._p); }
+    if (s._h) { ctx.strokeStyle = s.c; ctx.lineWidth = Math.max(1.6, s.w * 0.95); ctx.lineCap = ctx.lineJoin = 'round'; ctx.stroke(s._h); }
+  } else if (s.t === 'hl') {
+    ctx.save(); ctx.globalCompositeOperation = 'multiply'; ctx.globalAlpha = 0.45; ctx.strokeStyle = s.c; ctx.lineWidth = s.w; ctx.lineCap = 'round'; ctx.lineJoin = 'round'; ctx.stroke(s._p); ctx.restore();
+  } else {
+    ctx.strokeStyle = s.c; ctx.lineWidth = Math.max(1.6, s.w); ctx.lineCap = ctx.lineJoin = 'round'; ctx.stroke(s._p);
+  }
+}
+
+/* ---------------- hit testing ---------------- */
+function segSegDist(ax, ay, bx, by, cx, cy, dx, dy) {
+  const pd = (px, py, x1, y1, x2, y2) => { const vx = x2 - x1, vy = y2 - y1, L = vx * vx + vy * vy; let t = L ? ((px - x1) * vx + (py - y1) * vy) / L : 0; t = clamp(t, 0, 1); return Math.hypot(px - x1 - t * vx, py - y1 - t * vy); };
+  const o = (px, py, qx, qy, rx, ry) => Math.sign((qx - px) * (ry - py) - (qy - py) * (rx - px));
+  if (o(ax, ay, bx, by, cx, cy) * o(ax, ay, bx, by, dx, dy) < 0 && o(cx, cy, dx, dy, ax, ay) * o(cx, cy, dx, dy, bx, by) < 0) return 0;
+  return Math.min(pd(ax, ay, cx, cy, dx, dy), pd(bx, by, cx, cy, dx, dy), pd(cx, cy, ax, ay, bx, by), pd(dx, dy, ax, ay, bx, by));
+}
+function hitStroke(s, x0, y0, x1, y1, r) {
+  strokeGeom(s); const bb = s._bb;
+  if (Math.max(x0, x1) < bb[0] - r || Math.min(x0, x1) > bb[2] + r || Math.max(y0, y1) < bb[1] - r || Math.min(y0, y1) > bb[3] + r) return false;
+  const lim = r + s.w / 2;
+  if (s._seg) { for (let i = 0; i < s._seg.length; i += 4) if (segSegDist(x0, y0, x1, y1, s._seg[i], s._seg[i + 1], s._seg[i + 2], s._seg[i + 3]) <= lim) return true;
+    const rc = ringCircle(s); if (rc && Math.abs(Math.hypot(x1 - s.pts[0], y1 - s.pts[1]) - rc) <= lim) return true; return false; }
+  const p = s.pts; if (p.length === 3) return segSegDist(x0, y0, x1, y1, p[0], p[1], p[0], p[1]) <= lim;
+  for (let i = 0; i < p.length - 3; i += 3) if (segSegDist(x0, y0, x1, y1, p[i], p[i + 1], p[i + 3], p[i + 4]) <= lim) return true;
+  return false;
+}
+function inPoly(x, y, poly) { let c = false; for (let i = 0, j = poly.length - 2; i < poly.length; j = i, i += 2) { const xi = poly[i], yi = poly[i + 1], xj = poly[j], yj = poly[j + 1]; if ((yi > y) !== (yj > y) && x < (xj - xi) * (y - yi) / (yj - yi) + xi) c = !c; } return c; }
+function strokeSamples(s) { strokeGeom(s); if (s._seg) { const o = []; for (let i = 0; i < s._seg.length; i += 2) o.push(s._seg[i], s._seg[i + 1]); return o; } const o = []; for (let i = 0; i < s.pts.length; i += 3) o.push(s.pts[i], s.pts[i + 1]); return o; }
+
+/* ---------------- documents ---------------- */
+const qH = it => QW * it.h / it.w;
+const minH = it => Math.ceil(QY + qH(it) + 760);
+function blankDoc(qid, practice) { return { qid, practice: !!practice, strokes: [], h: 0, paper: 'grid', rev: 0, loaded: false, dirty: false, saving: false, again: false, hist: [], redo: [], timer: 0 }; }
+function getDoc(qid) { let d = docs.get(qid); if (!d) { d = blankDoc(qid); docs.set(qid, d); } return d; }
+function getPDoc(qid) {
+  let d = pdocs.get(qid);
+  if (!d) { d = blankDoc(qid, true); const raw = LS.get('practice:' + qid, null);
+    if (raw && Array.isArray(raw.s)) { d.strokes = raw.s.map(decStroke).filter(Boolean); d.h = +raw.h || 0; }
+    d.loaded = true; pdocs.set(qid, d); }
+  return d;
+}
+function fitHeight(d, it) { let h = Math.max(d.h || 0, minH(it)); for (const s of d.strokes) { strokeGeom(s); if (s._bb[3] + 300 > h) h = Math.ceil(s._bb[3] + 300); } d.h = h; }
+const editable = () => !S.readOnly && (S.role === 'lecturer' || S.role === 'local');
+const canDraw = () => editable() || (S.role === 'student' && S.practice);
+const editDoc = () => (S.role === 'student' ? getPDoc(S.cur) : getDoc(S.cur));
+
+async function withRetry(fn) { try { return await fn(); } catch (e) { if (e && e.code === 'unavailable') { await new Promise(r => setTimeout(r, 600 + Math.random() * 700)); return fn(); } throw e; } }
+function timeout(p, ms) { return Promise.race([p, new Promise((_, rej) => setTimeout(() => rej({ code: 'timeout' }), ms))]); }
+
+async function loadDoc(qid) {
+  await ready;
+  const d = getDoc(qid); const it = BYID.get(qid);
+  if (S.db) {
+    const snap = await timeout(withRetry(() => S.db.doc('ink/' + qid).get()), 12000);
+    if (snap.exists) {
+      const v = snap.data() || {}; let arr = Array.isArray(v.s) ? v.s.slice() : [];
+      const parts = clamp(Math.floor(+v.parts || 1), 1, 40);
+      for (let i = 1; i < parts; i++) { const c = await withRetry(() => S.db.doc(`ink/${qid}/more/${i}`).get()); const cv = c.exists ? c.data() : null; if (cv && Array.isArray(cv.s)) arr = arr.concat(cv.s); }
+      if (!d.dirty) {
+        d.strokes = arr.map(decStroke).filter(Boolean); d.h = clamp(+v.h || 0, 0, 40000);
+        d.paper = ['grid', 'lined', 'plain'].includes(v.paper) ? v.paper : 'grid'; d.rev = +v.rev || 0;
+      }
+    }
+  } else {
+    const raw = LS.get('ink:' + qid, null);
+    if (raw && Array.isArray(raw.s)) { d.strokes = raw.s.map(decStroke).filter(Boolean); d.h = +raw.h || 0; d.paper = raw.paper || 'grid'; d.rev = +raw.rev || 0; }
+  }
+  fitHeight(d, it); d.loaded = true; return d;
+}
+function markDirty(d) {
+  d.dirty = true; const it = BYID.get(d.qid); if (it) fitHeight(d, it);
+  clearTimeout(d.timer);
+  d.timer = setTimeout(() => saveDoc(d), d.practice ? 500 : 1400);
+  if (!d.practice) setStatus();
+}
+async function saveDoc(d) {
+  clearTimeout(d.timer);
+  if (!d.dirty) return;
+  if (d.practice) { d.dirty = false; LS.set('practice:' + d.qid, { h: d.h, s: d.strokes.map(encStroke) }); setStatus(); return; }
+  if (S.role === 'local') {
+    d.dirty = false; d.rev = Date.now();
+    const ok = LS.set('ink:' + d.qid, { h: d.h, paper: d.paper, rev: d.rev, s: d.strokes.map(encStroke) });
+    S.meta.set(d.qid, { rev: d.rev, n: d.strokes.length, at: new Date().toISOString() });
+    if (!ok) { d.dirty = true; d.err = 'This browser blocked saving.'; }
+    setStatus(); refreshProgress(); return;
+  }
+  if (S.role !== 'lecturer' || !S.db) return;
+  if (d.saving) { d.again = true; return; }
+  d.saving = true; d.dirty = false; d.err = null; setStatus();
+  const rev = Date.now(), enc = d.strokes.map(encStroke);
+  const chunks = []; let cur = [], size = 0;
+  for (const e of enc) { if (size + e.length > 190000 && cur.length) { chunks.push(cur); cur = []; size = 0; } cur.push(e); size += e.length + 4; }
+  chunks.push(cur);
+  try {
+    for (let i = 1; i < chunks.length; i++) await withRetry(() => S.db.doc(`ink/${d.qid}/more/${i}`).set({ rev, s: chunks[i] }));
+    await withRetry(() => S.db.doc('ink/' + d.qid).set({ v: 1, rev, h: d.h, paper: d.paper, parts: chunks.length, s: chunks[0] }));
+    const at = new Date().toISOString();
+    await withRetry(() => S.db.doc('meta/' + d.qid).set({ rev, n: enc.length, at }));
+    d.rev = rev; S.meta.set(d.qid, { rev, n: enc.length, at }); refreshProgress();
+  } catch (e) {
+    d.dirty = true;
+    const code = e && e.code;
+    if (code === 'invalid_argument' && !d.everSaved) { S.readOnly = true; d.err = 'This account can only view the boards.'; applyRole(); }
+    else if (code === 'quota_exceeded') d.err = 'Storage for this page is full. Clear older boards to keep saving.';
+    else if (code === 'revoked') d.err = 'Access to saving changed. Reload the page.';
+    else d.err = 'Not saved. Check the connection, then tap here to retry.';
+  }
+  if (!d.dirty) d.everSaved = true;
+  d.saving = false; setStatus();
+  if (d.again) { d.again = false; if (d.dirty) saveDoc(d); }
+}
+function flushAll() { for (const m of [docs, pdocs]) for (const d of m.values()) if (d.dirty && !d.err) saveDoc(d); }
+
+/* ---------------- history ---------------- */
+function pushHist(d, h) { d.hist.push(h); if (d.hist.length > 300) d.hist.shift(); d.redo.length = 0; updateUndo(); }
+function applyH(d, h, inverse) {
+  const rm = arr => { const set = new Set(arr); d.strokes = d.strokes.filter(s => !set.has(s)); };
+  if (h.t === 'add') inverse ? rm(h.s) : d.strokes.push(...h.s);
+  else if (h.t === 'erase') {
+    if (inverse) { for (let i = h.items.length - 1; i >= 0; i--) d.strokes.splice(Math.min(h.items[i].i, d.strokes.length), 0, h.items[i].s); }
+    else rm(h.items.map(x => x.s));
+  } else if (h.t === 'move') { const k = inverse ? -1 : 1; for (const s of h.s) { for (let i = 0; i < s.pts.length; i += 3) { s.pts[i] += h.dx * k; s.pts[i + 1] += h.dy * k; } invalidate(s); } }
+  else if (h.t === 'clear') d.strokes = inverse ? h.prev.slice() : [];
+}
+function undo() { const d = editDoc(); const h = d.hist.pop(); if (!h) return; applyH(d, h, true); d.redo.push(h); clearSel(); markDirty(d); Board.dirtyBase(); updateUndo(); }
+function redo() { const d = editDoc(); const h = d.redo.pop(); if (!h) return; applyH(d, h, false); d.hist.push(h); clearSel(); markDirty(d); Board.dirtyBase(); updateUndo(); }
+function updateUndo() { const u = $('#tb-undo'), r = $('#tb-redo'); if (!u || !S.cur) return; const d = editDoc(); u.disabled = !d.hist.length; r.disabled = !d.redo.length; }
+
+/* ---------------- board (canvas) ---------------- */
+const Board = {
+  el: null, base: null, live: null, bx: null, lx: null, thumb: null,
+  vw: 1, vh: 1, dpr: 1, scale: 1, zoom: 1, sx: 0, sy: 0, item: null, img: null, imgOk: false,
+  needBase: false, needLive: false, raf: 0,
+  init() {
+    this.el = $('#board'); this.base = $('#cBase'); this.live = $('#cLive'); this.thumb = $('#thumb');
+    this.bx = this.base.getContext('2d'); this.lx = this.live.getContext('2d');
+    new ResizeObserver(() => this.resize()).observe(this.el);
+    this.el.addEventListener('wheel', e => {
+      if (!this.item) return; e.preventDefault();
+      if (e.ctrlKey) { this.setZoom(this.zoom * Math.exp(-e.deltaY * 0.01), e.clientX, e.clientY); return; }   // trackpad pinch / Ctrl+scroll
+      const m = e.deltaMode === 1 ? 18 : e.deltaMode === 2 ? this.vh : 1;
+      this.setView(this.sx + (e.deltaX * m) / this.scale, this.sy + (e.deltaY * m) / this.scale);
+    }, { passive: false });
+    Input.bind(this.live);
+    Thumb.bind(this.thumb);
+  },
+  resize() {
+    const r = this.el.getBoundingClientRect(); if (r.width < 2 || r.height < 2) return;
+    this.vw = r.width; this.vh = r.height; this.dpr = Math.min(window.devicePixelRatio || 1, 2.5); this.scale = this.vw / W * this.zoom;
+    for (const c of [this.base, this.live]) { c.width = Math.round(this.vw * this.dpr); c.height = Math.round(this.vh * this.dpr); }
+    this.setView(this.sx, this.sy); this.dirtyBase(); this.dirtyLive();
+  },
+  setItem(it) {
+    this.item = it; this.sy = 0; this.sx = 0; this.zoom = 1; this.imgOk = false; updateZoomPill();
+    this.img = Img.get(it, () => { if (this.item === it) { this.imgOk = true; this.dirtyBase(); } });
+    this.imgOk = this.img.complete && this.img.naturalWidth > 0;
+    clearSel(); this.resize(); this.dirtyBase(); this.dirtyLive();
+  },
+  docH() { const it = this.item; if (!it) return 1000; const d = getDoc(it.id); let h = Math.max(d.h || 0, minH(it)); if (S.role === 'student') { const p = getPDoc(it.id); h = Math.max(h, p.h || 0); } return h; },
+  maxScroll() { return Math.max(0, this.docH() - this.vh / this.scale); },
+  maxScrollX() { return Math.max(0, W - this.vw / this.scale); },
+  scrollTo(y) { this.setView(this.sx, y); },
+  setView(x, y) {
+    const nx = clamp(x, 0, this.maxScrollX()), ny = clamp(y, 0, this.maxScroll());
+    if (nx === this.sx && ny === this.sy) { this.updateThumb(); return; }
+    this.sx = nx; this.sy = ny; this.dirtyBase(); this.dirtyLive(); this.updateThumb();
+  },
+  setZoom(z, cx, cy) {
+    const r = this.el.getBoundingClientRect(); if (cx == null) { cx = r.left + r.width / 2; cy = r.top + r.height / 2; }
+    const ax = cx - r.left, ay = cy - r.top, Lx = ax / this.scale + this.sx, Ly = ay / this.scale + this.sy;
+    this.zoom = clamp(z, 1, 4); this.scale = this.vw / W * this.zoom;
+    this.setView(Lx - ax / this.scale, Ly - ay / this.scale); this.dirtyBase(); this.dirtyLive(); updateZoomPill();
+  },
+  updateThumb() {
+    const H = this.docH(), vis = this.vh / this.scale, t = this.thumb;
+    if (H <= vis + 1) { t.style.display = 'none'; } else {
+      t.style.display = 'block'; const th = Math.max(36, this.vh * vis / H); const top = (this.vh - th) * (this.sy / (H - vis));
+      t.style.height = th + 'px'; t.style.transform = `translateY(${top}px)`;
+    }
+    const near = this.sy >= this.maxScroll() - 8 && canDraw();
+    $('#addSpace').classList.toggle('hidden', !near || !this.item);
+  },
+  dirtyBase() { this.needBase = true; this.kick(); },
+  dirtyLive() { this.needLive = true; this.kick(); },
+  kick() { if (!this.raf) this.raf = requestAnimationFrame(() => { this.raf = 0; if (this.needBase) { this.needBase = false; this.drawBase(); } if (this.needLive) { this.needLive = false; this.drawLive(); } }); },
+  xf(ctx) { const k = this.scale * this.dpr; ctx.setTransform(k, 0, 0, k, -this.sx * k, -this.sy * k); },
+  drawBase() {
+    const ctx = this.bx, it = this.item; ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.clearRect(0, 0, this.base.width, this.base.height);
+    if (!it) return;
+    this.xf(ctx); const top = this.sy, bot = this.sy + this.vh / this.scale;
+    const d = getDoc(it.id);
+    paintSheet(ctx, it, d.paper, top, bot, this.img, this.imgOk, this.scale * this.dpr);
+    if (S.role !== 'student' || S.showSol) for (const s of d.strokes) { if (s._hide) continue; strokeGeom(s); if (s._bb[3] < top || s._bb[1] > bot) continue; drawStroke(ctx, s); }
+    if (S.role === 'student') for (const s of getPDoc(it.id).strokes) { if (s._hide) continue; strokeGeom(s); if (s._bb[3] < top || s._bb[1] > bot) continue; drawStroke(ctx, s); }
+    this.updateThumb();
+  },
+  drawLive() {
+    const ctx = this.lx; ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.clearRect(0, 0, this.live.width, this.live.height);
+    if (!this.item) return; this.xf(ctx);
+    const a = Input.act;
+    if (a && a.kind === 'draw') {
+      const s = a.s;
+      if (s.t === 'hl') { ctx.globalAlpha = 0.45; ctx.strokeStyle = s.c; ctx.lineWidth = s.w; ctx.lineCap = ctx.lineJoin = 'round'; ctx.stroke(polyPath(s.pts)); ctx.globalAlpha = 1; }
+      else if (getStroke) { ctx.fillStyle = s.c; ctx.fill(pfPath(s.pts, s.w, false)); }
+      else { ctx.strokeStyle = s.c; ctx.lineWidth = s.w; ctx.lineCap = ctx.lineJoin = 'round'; ctx.stroke(polyPath(s.pts)); }
+    } else if (a && a.kind === 'shape' && a.s) { drawStroke(ctx, a.s); }
+    else if (a && a.kind === 'lasso' && a.pts.length > 2) {
+      ctx.beginPath(); ctx.moveTo(a.pts[0], a.pts[1]); for (let i = 2; i < a.pts.length; i += 2) ctx.lineTo(a.pts[i], a.pts[i + 1]); ctx.closePath();
+      ctx.fillStyle = 'rgba(90,103,208,.07)'; ctx.fill(); ctx.setLineDash([6 / this.scale, 5 / this.scale]); ctx.strokeStyle = '#5A67D0'; ctx.lineWidth = 1.5 / this.scale; ctx.stroke(); ctx.setLineDash([]);
+    } else if (a && a.kind === 'erase') {
+      ctx.beginPath(); ctx.arc(a.x, a.y, a.r, 0, Math.PI * 2); ctx.fillStyle = 'rgba(90,103,208,.1)'; ctx.fill(); ctx.strokeStyle = 'rgba(90,103,208,.6)'; ctx.lineWidth = 1.2 / this.scale; ctx.stroke();
+    }
+    if (Sel.set.size) {
+      const dx = a && a.kind === 'move' ? a.dx : 0, dy = a && a.kind === 'move' ? a.dy : 0;
+      if (dx || dy) { ctx.save(); ctx.translate(dx, dy); for (const s of Sel.set) drawStroke(ctx, s); ctx.restore(); }
+      const b = Sel.box(); if (b) {
+        ctx.setLineDash([7 / this.scale, 5 / this.scale]); ctx.strokeStyle = '#5A67D0'; ctx.lineWidth = 1.6 / this.scale;
+        ctx.strokeRect(b[0] + dx - 6, b[1] + dy - 6, b[2] - b[0] + 12, b[3] - b[1] + 12); ctx.setLineDash([]);
+      }
+      Sel.placeBar(dx, dy);
+    }
+  }
+};
+
+function paintSheet(ctx, it, paper, top, bot, img, imgOk, k) {
+  ctx.fillStyle = '#FCFCFF'; ctx.fillRect(0, top, W, bot - top);
+  const qh = qH(it), gy = QY + qh + 34;
+  // question card wash
+  if (top < gy) { ctx.fillStyle = '#FFFFFF'; roundRect(ctx, QX - 16, QY - 16, QW + 32, qh + 32, 14); ctx.fill(); ctx.strokeStyle = 'rgba(70,72,120,.10)'; ctx.lineWidth = 1 / k * 1.2; ctx.stroke(); }
+  if (imgOk) { ctx.imageSmoothingEnabled = true; ctx.imageSmoothingQuality = 'high'; ctx.drawImage(img, QX, QY, QW, qh); }
+  else if (top < gy) { ctx.fillStyle = 'rgba(90,103,208,.06)'; for (let y = QY; y < QY + qh - 10; y += 34) { roundRect(ctx, QX, y, QW * (0.55 + 0.4 * Math.abs(Math.sin(y))), 14, 7); ctx.fill(); } }
+  // paper below the question
+  const y0 = Math.max(top, gy), lw = 1 / k;
+  if (bot > gy) {
+    if (paper === 'grid') {
+      const g = 25; const minor = new Path2D(), major = new Path2D();
+      for (let x = 0; x <= W; x += g) { (Math.round(x / g) % 5 === 0 ? major : minor).moveTo(x, y0); (Math.round(x / g) % 5 === 0 ? major : minor).lineTo(x, bot); }
+      for (let y = gy + Math.max(0, Math.ceil((y0 - gy) / g)) * g; y <= bot; y += g) { const P = (Math.round((y - gy) / g) % 5 === 0) ? major : minor; P.moveTo(0, y); P.lineTo(W, y); }
+      ctx.lineWidth = lw; ctx.strokeStyle = 'rgba(90,103,208,.10)'; ctx.stroke(minor); ctx.lineWidth = lw * 1.3; ctx.strokeStyle = 'rgba(90,103,208,.19)'; ctx.stroke(major);
+    } else if (paper === 'lined') {
+      const g = 36, P = new Path2D();
+      for (let y = gy + Math.max(1, Math.ceil((y0 - gy) / g)) * g; y <= bot; y += g) { P.moveTo(0, y); P.lineTo(W, y); }
+      ctx.lineWidth = lw * 1.2; ctx.strokeStyle = 'rgba(76,143,214,.26)'; ctx.stroke(P);
+      ctx.beginPath(); ctx.moveTo(78, y0); ctx.lineTo(78, bot); ctx.strokeStyle = 'rgba(90,103,208,.3)'; ctx.stroke();
+    }
+    if (top < gy + 40) {
+      ctx.fillStyle = '#FCFCFF'; ctx.fillRect(QX, gy - 14, 132, 28);
+      ctx.fillStyle = '#5A67D0'; ctx.font = '700 14px "Atkinson Hyperlegible", system-ui, sans-serif'; ctx.textBaseline = 'middle';
+      ctx.fillText(it.slide ? 'Answers' : 'Working', QX + 4, gy);
+    }
+  }
+}
+function roundRect(ctx, x, y, w, h, r) { ctx.beginPath(); ctx.moveTo(x + r, y); ctx.arcTo(x + w, y, x + w, y + h, r); ctx.arcTo(x + w, y + h, x, y + h, r); ctx.arcTo(x, y + h, x, y, r); ctx.arcTo(x, y, x + w, y, r); ctx.closePath(); }
+
+/* ---------------- images ---------------- */
+// questions-chNN.json holds every question image of one chapter, so the repository stays small enough to upload by hand
+const BUNDLES = new Map();
+function bundleFor(n) {
+  const f = `questions-ch${String(n).padStart(2, '0')}.json`;
+  if (!BUNDLES.has(f)) BUNDLES.set(f, fetch(f).then(r => (r.ok ? r.json() : null)).catch(() => { BUNDLES.delete(f); return null; }));
+  return BUNDLES.get(f);
+}
+const Img = {
+  cache: new Map(),
+  get(it, onload) {
+    let e = this.cache.get(it.id);
+    if (!e) { const img = new Image(); img.decoding = 'async'; e = { img, cbs: [] }; img.onload = () => { const cbs = e.cbs; e.cbs = []; cbs.forEach(f => f()); };
+      if (it.img) img.src = it.img; else bundleFor(it.ch.n).then(m => { if (m && m[it.id]) img.src = m[it.id]; }); this.cache.set(it.id, e);
+      if (this.cache.size > 40) { const first = this.cache.keys().next().value; if (first !== it.id) this.cache.delete(first); } }
+    if (onload && !(e.img.complete && e.img.naturalWidth)) e.cbs.push(onload);
+    return e.img;
+  },
+  preload(it) { if (it) this.get(it); }
+};
+
+/* ---------------- input ---------------- */
+const Input = {
+  act: null, touches: new Map(), rect: null, inertia: 0, space: false,
+  bind(el) {
+    el.addEventListener('pointerdown', e => this.down(e));
+    el.addEventListener('pointermove', e => this.move(e));
+    el.addEventListener('pointerup', e => this.up(e));
+    el.addEventListener('pointercancel', e => this.up(e, true));
+    el.addEventListener('lostpointercapture', e => { if (this.act && this.act.pid === e.pointerId) this.up(e, true); });
+    el.addEventListener('contextmenu', e => e.preventDefault());
+    // iPad: stop the magnifier, callouts and page gestures from stealing Pencil strokes
+    for (const t of ['touchstart', 'touchmove']) el.addEventListener(t, e => { if (e.cancelable) e.preventDefault(); }, { passive: false });
+  },
+  xy(e) { const r = this.rect; return [(e.clientX - r.left) / Board.scale + Board.sx, (e.clientY - r.top) / Board.scale + Board.sy]; },
+  pinchStart() {
+    const [a, b] = [...this.touches.values()], r = this.rect, mx = (a.x + b.x) / 2, my = (a.y + b.y) / 2;
+    this.act = { kind: 'pinch', d0: Math.hypot(a.x - b.x, a.y - b.y) || 1, z0: Board.zoom, Lx: (mx - r.left) / Board.scale + Board.sx, Ly: (my - r.top) / Board.scale + Board.sy };
+  },
+  pinchMove() {
+    const [a, b] = [...this.touches.values()], r = this.rect, A = this.act, mx = (a.x + b.x) / 2, my = (a.y + b.y) / 2;
+    Board.zoom = clamp(A.z0 * Math.hypot(a.x - b.x, a.y - b.y) / A.d0, 1, 4); Board.scale = Board.vw / W * Board.zoom;
+    Board.setView(A.Lx - (mx - r.left) / Board.scale, A.Ly - (my - r.top) / Board.scale); Board.dirtyBase(); Board.dirtyLive(); updateZoomPill();
+  },
+  pr(e) { if (e.pointerType !== 'pen') return 0.5; const p = e.pressure || 0.5; return clamp(0.15 + 0.85 * Math.pow(p, 0.6), 0.12, 1); },
+  down(e) {
+    if (!Board.item) return;
+    cancelAnimationFrame(this.inertia);
+    this.rect = Board.live.getBoundingClientRect();
+    if (e.pointerType === 'pen' && !S.penSeen) { S.penSeen = true; LS.set('penSeen', true); }
+    const touch = e.pointerType === 'touch';
+    if (touch) this.touches.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    const drawOK = canDraw();
+    if (touch && this.touches.size >= 2) {                       // two fingers: pinch to zoom and pan
+      if (this.act && this.act.kind !== 'pan' && this.act.kind !== 'pinch') this.abort();
+      if (this.touches.size === 2) this.pinchStart();
+      try { Board.live.setPointerCapture(e.pointerId); } catch {}
+      return;
+    }
+    const touchPans = touch && (!drawOK || (S.penSeen && !S.fingerDraw));
+    if (touchPans || e.button === 1 || (e.pointerType === 'mouse' && (this.space || !drawOK))) {
+      if (this.act && this.act.kind !== 'pan') this.abort();
+      if (!this.act) this.act = { kind: 'pan', pid: e.pointerId, x: e.clientX, y: e.clientY, t: performance.now(), vx: 0, vy: 0 };
+      try { Board.live.setPointerCapture(e.pointerId); } catch {}
+      return;
+    }
+    if (this.act) return;
+    if (e.button > 0) return;
+    e.preventDefault(); try { Board.live.setPointerCapture(e.pointerId); } catch {}
+    const [x, y] = this.xy(e), pid = e.pointerId, d = editDoc();
+    const tool = e.pointerType === 'pen' && (e.button === 5 || (e.buttons & 32)) ? 'eraser' : S.tool;   // stylus eraser end
+    if (tool === 'pen' || tool === 'hl' || (tool === 'arrow' && S.arrowKind === 'curly')) {
+      clearSel();
+      const t = tool === 'hl' ? 'hl' : tool === 'arrow' ? 'curly' : 'pen';
+      const w = t === 'hl' ? SIZES.hl[S.size.hl] : SIZES.pen[S.size.pen];
+      const c = t === 'hl' ? S.color.hl : S.color.pen;
+      this.act = { kind: 'draw', pid, s: { t, c, w, pts: [x, y, this.pr(e)] } };
+    } else if (tool === 'arrow' || tool === 'ring') {
+      clearSel();
+      this.act = { kind: 'shape', pid, x, y, s: null };
+    } else if (tool === 'eraser') {
+      clearSel();
+      const r = SIZES.eraser[S.size.eraser] / 2;
+      this.act = { kind: 'erase', pid, x, y, r, items: [], d };
+      this.eraseSeg(x, y, x, y);
+    } else if (tool === 'select') {
+      const b = Sel.box();
+      if (Sel.set.size && b && x > b[0] - 14 && x < b[2] + 14 && y > b[1] - 14 && y < b[3] + 14) {
+        this.act = { kind: 'move', pid, x0: x, y0: y, dx: 0, dy: 0 }; for (const s of Sel.set) s._hide = true; Board.dirtyBase();
+      } else { clearSel(); this.act = { kind: 'lasso', pid, pts: [x, y] }; }
+    }
+    Board.dirtyLive();
+  },
+  move(e) {
+    const a = this.act;
+    if (e.pointerType === 'touch' && this.touches.has(e.pointerId)) this.touches.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    if (!a) return;
+    if (a.kind === 'pinch') { if (this.touches.has(e.pointerId) && this.touches.size >= 2) this.pinchMove(); return; }
+    if (a.kind === 'pan') {
+      if (e.pointerId !== a.pid) return;
+      const now = performance.now(), dx = e.clientX - a.x, dy = e.clientY - a.y, dt = Math.max(1, now - a.t);
+      Board.setView(Board.sx - dx / Board.scale, Board.sy - dy / Board.scale);
+      a.vx = 0.8 * (dx / dt) + 0.2 * a.vx; a.vy = 0.8 * (dy / dt) + 0.2 * a.vy; a.x = e.clientX; a.y = e.clientY; a.t = now; return;
+    }
+    if (e.pointerId !== a.pid) return;
+    const evs = e.getCoalescedEvents ? e.getCoalescedEvents() : null; const list = evs && evs.length ? evs : [e];
+    if (a.kind === 'draw') {
+      for (const ev of list) { const [x, y] = this.xy(ev); const p = a.s.pts, n = p.length; if (Math.hypot(x - p[n - 3], y - p[n - 2]) < 0.4) continue; p.push(x, y, this.pr(ev)); }
+      this.autoScroll(e); Board.dirtyLive();
+    } else if (a.kind === 'shape') {
+      const [x, y] = this.xy(e); a.s = shapeFor(a.x, a.y, x, y); Board.dirtyLive();
+    } else if (a.kind === 'erase') {
+      for (const ev of list) { const [x, y] = this.xy(ev); this.eraseSeg(a.x, a.y, x, y); a.x = x; a.y = y; } Board.dirtyLive();
+    } else if (a.kind === 'lasso') {
+      const [x, y] = this.xy(e); a.pts.push(x, y); Board.dirtyLive();
+    } else if (a.kind === 'move') {
+      const [x, y] = this.xy(e); a.dx = x - a.x0; a.dy = y - a.y0; Board.dirtyLive();
+    }
+  },
+  up(e, cancelled) {
+    if (e.pointerType === 'touch') this.touches.delete(e.pointerId);
+    const a = this.act; if (!a) return;
+    const resume = () => { const [id, t] = [...this.touches.entries()][0]; this.act = { kind: 'pan', pid: id, x: t.x, y: t.y, t: performance.now(), vx: 0, vy: 0 }; };
+    if (a.kind === 'pinch') { this.act = null; if (this.touches.size === 1) resume(); else if (this.touches.size >= 2) this.pinchStart(); return; }
+    if (e.pointerId !== a.pid) return;
+    this.act = null;
+    if (a.kind === 'pan') {
+      if (this.touches.size) { resume(); return; }
+      let vx = a.vx, vy = a.vy; if ((Math.abs(vx) < 0.05 && Math.abs(vy) < 0.05) || cancelled || performance.now() - a.t > 120) return;
+      let last = performance.now();
+      const step = now => { const dt = now - last; last = now; Board.setView(Board.sx - (vx * dt) / Board.scale, Board.sy - (vy * dt) / Board.scale); const f = Math.pow(0.94, dt / 16); vx *= f; vy *= f; if (Math.abs(vx) + Math.abs(vy) > 0.02) this.inertia = requestAnimationFrame(step); };
+      this.inertia = requestAnimationFrame(step); return;
+    }
+    const d = editDoc();
+    if (a.kind === 'draw') {
+      const s = mkStroke(a.s); s.pts = simplify(s.pts, s.t === 'hl' ? 0.6 : 0.3);
+      d.strokes.push(s); pushHist(d, { t: 'add', s: [s] }); markDirty(d);
+    } else if (a.kind === 'shape') {
+      if (a.s) { const L = Math.hypot(a.s.pts[3] - a.s.pts[0], a.s.pts[4] - a.s.pts[1]); if (L > 6) { const s = mkStroke(a.s); d.strokes.push(s); pushHist(d, { t: 'add', s: [s] }); markDirty(d); } }
+    } else if (a.kind === 'erase') {
+      if (a.items.length) { pushHist(d, { t: 'erase', items: a.items }); markDirty(d); }
+    } else if (a.kind === 'lasso') {
+      const poly = a.pts; if (poly.length > 6) for (const s of d.strokes) { const sm = strokeSamples(s); let inside = 0; for (let i = 0; i < sm.length; i += 2) if (inPoly(sm[i], sm[i + 1], poly)) inside++; if (inside / (sm.length / 2) >= 0.5) Sel.set.add(s); }
+      if (Sel.set.size) Sel.showBar(true);
+    } else if (a.kind === 'move') {
+      for (const s of Sel.set) s._hide = false;
+      if (Math.abs(a.dx) + Math.abs(a.dy) > 0.5) { const h = { t: 'move', s: [...Sel.set], dx: a.dx, dy: a.dy }; applyH(d, h, false); pushHist(d, h); markDirty(d); }
+    }
+    Board.updateThumb(); Board.dirtyBase(); Board.dirtyLive();
+  },
+  abort() { const a = this.act; if (!a) return; if (a.kind === 'erase' && a.items.length) { pushHist(a.d, { t: 'erase', items: a.items }); markDirty(a.d); } if (a.kind === 'move') for (const s of Sel.set) s._hide = false; this.act = null; Board.dirtyLive(); Board.dirtyBase(); },
+  eraseSeg(x0, y0, x1, y1) {
+    const a = this.act, d = a.d; let hit = false;
+    for (let i = d.strokes.length - 1; i >= 0; i--) { const s = d.strokes[i]; if (hitStroke(s, x0, y0, x1, y1, a.r)) { a.items.push({ s, i }); d.strokes.splice(i, 1); hit = true; } }
+    if (hit) Board.dirtyBase();
+  },
+  autoScroll(e) { const r = this.rect, edge = 60; if (e.clientY > r.bottom - edge && Board.sy < Board.maxScroll()) { Board.scrollTo(Board.sy + 6 / Board.scale); } }
+};
+function shapeFor(x0, y0, x1, y1) {
+  const c = S.color.pen, w = SIZES.pen[S.size.pen];
+  if (S.tool === 'ring') {
+    // a vertex points towards the drag direction, snapped so rings sit upright (pointy-top or flat-top)
+    const r = Math.max(10, Math.hypot(x1 - x0, y1 - y0)), st = S.ringKind === 'pent' ? Math.PI / 10 : Math.PI / 6;
+    const a = Math.round(Math.atan2(y1 - y0, x1 - x0) / st) * st;
+    return { t: 'ring', k: S.ringKind, c, w, pts: [x0, y0, 0.5, x0 + r * Math.cos(a), y0 + r * Math.sin(a), 0.5] };
+  }
+  let ex = x1, ey = y1; const a = Math.atan2(y1 - y0, x1 - x0), L = Math.hypot(x1 - x0, y1 - y0), sn = Math.PI / 12, as = Math.round(a / sn) * sn;
+  if (Math.abs(a - as) < 0.06) { ex = x0 + L * Math.cos(as); ey = y0 + L * Math.sin(as); }
+  const t = S.arrowKind === 'line' ? 'line' : S.arrowKind === 'eq' ? 'eq' : 'arrow';
+  return { t, c, w, pts: [x0, y0, 0.5, ex, ey, 0.5] };
+}
+
+/* ---------------- selection ---------------- */
+const Sel = {
+  set: new Set(),
+  box() { if (!this.set.size) return null; let b = [1e9, 1e9, -1e9, -1e9]; for (const s of this.set) { strokeGeom(s); const q = s._bb; b = [Math.min(b[0], q[0]), Math.min(b[1], q[1]), Math.max(b[2], q[2]), Math.max(b[3], q[3])]; } return b; },
+  showBar(on) { $('#selbar').classList.toggle('hidden', !on); },
+  placeBar(dx, dy) { const b = this.box(), bar = $('#selbar'); if (!b) return; const k = Board.scale; let x = (b[0] + dx - Board.sx) * k, y = (b[3] + dy - Board.sy) * k + 14; y = clamp(y, 8, Board.vh - 56); x = clamp(x, 8, Board.vw - (bar.offsetWidth || 300) - 12); bar.style.left = x + 'px'; bar.style.top = y + 'px'; }
+};
+function clearSel() { if (!Sel.set.size) { Sel.showBar(false); return; } for (const s of Sel.set) s._hide = false; Sel.set.clear(); Sel.showBar(false); Board.dirtyLive(); Board.dirtyBase(); }
+
+/* ---------------- scrollbar ---------------- */
+const Thumb = {
+  bind(t) {
+    let start = null;
+    t.addEventListener('pointerdown', e => { e.preventDefault(); e.stopPropagation(); t.setPointerCapture(e.pointerId); t.classList.add('drag'); start = { y: e.clientY, sy: Board.sy }; });
+    t.addEventListener('pointermove', e => { if (!start) return; const H = Board.docH(), vis = Board.vh / Board.scale, th = t.offsetHeight; const ratio = (H - vis) / Math.max(1, Board.vh - th); Board.scrollTo(start.sy + (e.clientY - start.y) * ratio); });
+    const end = () => { start = null; t.classList.remove('drag'); };
+    t.addEventListener('pointerup', end); t.addEventListener('pointercancel', end);
+  }
+};
+
+/* ---------------- capabilities: who can write, where ink lives ---------------- */
+async function initCaps() {
+  let db = null, user = null, dl = null, acct = null;
+  const cfg = window.EC025_CONFIG;
+  S.backend = 'none';
+  if (!window.claude && cfg && cfg.firebase && cfg.firebase.apiKey && window.EC025Firebase) {
+    try { window.EC025Firebase.install(cfg); S.backend = 'firebase'; } catch (e) { console.error(e); toast('The database settings in config.js look wrong. Check them against the setup guide.'); }
+  } else if (window.claude && typeof window.claude.use === 'function') S.backend = 'claude';
+  if (window.claude && typeof window.claude.use === 'function') {
+    try { [db, user, dl, acct] = await Promise.all(['db', 'user', 'downloads', 'account'].map(n => claude.use(n))); } catch {}
+  }
+  if (!db) S.backend = 'none';
+  S.db = db; S.user = user; S.dl = dl; S.acct = acct; S.who = acct ? acct.current() : null;
+  if (acct) acct.onChange(u => { if ((u ? u.uid : null) !== (S.who ? S.who.uid : null)) settleSaves().then(() => location.reload()); });
+  if (db) {
+    let canEdit = false; try { canEdit = user ? await user.canEdit() : false; } catch {}
+    S.role = canEdit ? 'lecturer' : 'student';
+    subscribeMeta();
+  } else {
+    S.role = 'local';
+    for (const k of LS.keys('ink:')) { const v = LS.get('ink:' + k, null); if (v && Array.isArray(v.s)) S.meta.set(k, { rev: v.rev || 0, n: v.s.length }); }
+  }
+  readyResolve(); applyRole(); refreshProgress();
+  forumInit();
+  if (S.view === 'forum') { updateComposerAvail(); renderFeed(); }
+}
+let metaTimer = 0, metaLive = false;
+function subscribeMeta() {
+  metaTimer = setTimeout(() => { if (!metaLive) toast('Saved solutions are slow to load. They will appear when the connection catches up.'); }, 10000);
+  try {
+    S.db.collection('meta').onSnapshot(snap => {
+      if (!snap.metadata.fromCache) { metaLive = true; clearTimeout(metaTimer); }
+      for (const ch of snap.docChanges()) {
+        const id = ch.doc.id;
+        if (ch.type === 'removed') { S.meta.delete(id); continue; }
+        const v = ch.doc.data() || {}; S.meta.set(id, { rev: +v.rev || 0, n: +v.n || 0, at: typeof v.at === 'string' ? v.at : '' });
+        const d = docs.get(id);
+        if (d && d.loaded && !d.dirty && !d.saving && (+v.rev || 0) > d.rev && !(Input.act && S.cur === id)) {
+          const wasEmpty = !d.strokes.length;
+          d.loaded = false;
+          loadDoc(id).then(() => { if (S.cur === id) { Board.dirtyBase(); setStatus(); updateUndo(); if (S.role === 'student') toast(wasEmpty ? 'Your lecturer just added a solution' : 'Solution updated'); } }).catch(() => {});
+        }
+      }
+      refreshProgress(); if (S.cur) setStatus();
+    }, err => { clearTimeout(metaTimer); if (err && err.code !== 'revoked') toast('Live updates stopped. Reload to see new solutions.'); });
+  } catch {}
+}
+function applyRole() {
+  document.body.classList.remove('role-lecturer', 'role-student', 'role-local');
+  document.body.classList.add('role-' + S.role);
+  const r = $('#role'); r.dataset.role = S.role;
+  const w = S.who;
+  let T = {
+    lecturer: ['Lecturer mode', 'Your writing saves to each question. Students who open this page see it, and share reflections in each section\'s forum.'],
+    student: ['Viewing solutions', 'Your lecturer\'s working appears on each question. Each section also has a class forum.'],
+    local: ['Saving on this device', 'Saved solutions can\'t be reached here, so writing stays in this browser.'],
+    pending: ['Connecting…', 'Checking who can write on the boards.']
+  }[S.readOnly ? 'student' : S.role];
+  if (S.backend === 'firebase') {
+    if (S.role === 'lecturer') T = ['Lecturer mode', `Signed in as ${w.email}. Your writing saves to each question, and students see it.`];
+    else if (w) T = ['Signed in', `${w.name || w.email}. View worked solutions and share reflections in each section's forum.`];
+    else T = ['Viewing solutions', 'Sign in with Google to share reflections in the class forums. Lecturers sign in to write solutions.'];
+  } else if (S.backend === 'none' && S.role === 'local') T = ['Not connected yet', 'This copy isn\'t linked to its database, so writing stays in this browser. Fill in config.js (see the setup guide).'];
+  $('#roleT').textContent = T[0]; $('#roleS').textContent = T[1];
+  renderAccount();
+  buildRail(); renderHome(); if (S.cur) { setStatus(); Board.dirtyBase(); }
+}
+
+const GOOGLE_G = '<svg class="gl" viewBox="0 0 48 48" aria-hidden="true"><path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3C33.7 32.7 29.2 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.8 1.2 7.9 3.1l5.7-5.7C34 6.1 29.3 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.3-.1-2.4-.4-3.5z"/><path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.7 15.1 19 12 24 12c3.1 0 5.8 1.2 7.9 3.1l5.7-5.7C34 6.1 29.3 4 24 4 16.3 4 9.7 8.3 6.3 14.7z"/><path fill="#4CAF50" d="M24 44c5.2 0 9.9-2 13.4-5.2l-6.2-5.2C29.2 35.1 26.7 36 24 36c-5.2 0-9.6-3.3-11.3-8l-6.5 5C9.5 39.6 16.2 44 24 44z"/><path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-.8 2.2-2.2 4.2-4.1 5.6l6.2 5.2C37 39.2 44 34 44 24c0-1.3-.1-2.4-.4-3.5z"/></svg>';
+function signInBtn() { return `<button class="btn btn-glass" type="button" data-signin="1">${GOOGLE_G}Sign in with Google</button>`; }
+function renderAccount() {
+  const el = $('#acct'); if (!el) return;
+  if (S.backend !== 'firebase' || !S.acct) { el.innerHTML = ''; return; }
+  el.innerHTML = S.who ? '<button class="btn btn-glass" type="button" id="signOut">Sign out</button>' : signInBtn();
+  const so = $('#signOut'); if (so) so.onclick = async () => { so.disabled = true; await settleSaves(); try { await S.acct.signOut(); } catch { so.disabled = false; toast('Couldn\'t sign out. Try again.'); } };
+}
+async function doSignIn(btn) {
+  if (!S.acct) return; if (btn) btn.disabled = true;
+  try { await S.acct.signIn(); }
+  catch (e) {
+    const c = e && e.code;
+    if (c === 'auth/unauthorized-domain') toast('This web address isn\'t allowed in Firebase yet. Add it under Authentication, Settings, Authorized domains.');
+    else if (c !== 'auth/popup-closed-by-user' && c !== 'auth/cancelled-popup-request') toast('Sign-in didn\'t finish. Try again.');
+  }
+  if (btn) btn.disabled = false;
+}
+document.addEventListener('click', e => { const b = e.target.closest('[data-signin]'); if (b) doSignIn(b); });
+async function settleSaves() { flushAll(); for (let i = 0; i < 40; i++) { let busy = false; for (const d of docs.values()) if (d.dirty || d.saving) busy = true; if (!busy) return; await new Promise(r => setTimeout(r, 100)); } }
+
+/* ---------------- status pill ---------------- */
+function fmtTime(iso) { if (!iso) return ''; const d = new Date(iso); if (isNaN(d)) return ''; return d.toLocaleString(undefined, { day: 'numeric', month: 'short', hour: 'numeric', minute: '2-digit' }); }
+function setStatus() {
+  const el = $('#status'), t = $('#statusT'); if (!S.cur) return;
+  const d = getDoc(S.cur), m = S.meta.get(S.cur);
+  let s = 'idle', txt = '';
+  if (!d.loaded) { s = 'saving'; txt = 'Loading saved working…'; }
+  else if (S.role === 'student' || S.readOnly) {
+    if (S.practice) { const p = getPDoc(S.cur); txt = p.strokes.length ? 'Practice saved on this device' : 'Practice: write your own attempt'; s = 'saved'; }
+    else if (d.strokes.length) { s = 'sol'; txt = S.showSol ? `Lecturer's working${m && m.at ? ', ' + fmtTime(m.at) : ''}` : 'Solution hidden. Try it first'; }
+    else { s = 'idle'; txt = 'No worked solution yet'; }
+  } else if (d.err) { s = 'error'; txt = d.err; }
+  else if (d.saving) { s = 'saving'; txt = 'Saving…'; }
+  else if (d.dirty) { s = 'dirty'; txt = 'Saving soon…'; }
+  else if (S.role === 'local') { s = d.strokes.length ? 'saved' : 'idle'; txt = d.strokes.length ? 'Saved on this device' : 'Ready to write'; }
+  else { s = d.strokes.length ? 'saved' : 'idle'; txt = d.strokes.length ? `Saved${m && m.at ? ', ' + fmtTime(m.at) : ''}` : 'Ready to write. Saves as you go'; }
+  el.dataset.s = s; t.textContent = txt;
+}
+
+/* ---------------- rail (tool rack) ---------------- */
+function tb(id, icon, label, extra = '') { return `<button class="tb ${extra}" type="button" id="tb-${id}" aria-label="${esc(label)}" title="${esc(label)}">${icon}</button>`; }
+function buildRail() {
+  const rail = $('#rail'); const ed = editable(), stu = S.role === 'student' || S.readOnly;
+  document.body.classList.toggle('rail-right', S.rail === 'right');
+  let h = '';
+  if (stu) {
+    h += tb('sol', svgI(S.showSol ? 'eye' : 'eyeoff'), S.showSol ? 'Hide the lecturer\'s solution' : 'Show the lecturer\'s solution');
+    h += tb('practice', svgI('practice'), S.practice ? 'Stop practising' : 'Practice: write your own attempt');
+    h += '<span class="rail-sep"></span>';
+  }
+  if (ed || (stu && S.practice)) {
+    const arrowIc = S.arrowKind === 'curly' ? 'curly' : S.arrowKind;
+    h += tb('pen', svgI('pen'), 'Pen (P)');
+    h += tb('hl', svgI('hl'), 'Highlighter (H)');
+    if (ed) { h += tb('arrow', svgI(arrowIc), 'Arrows: curly, reaction, equilibrium (A)', 'opt'); h += tb('ring', svgI(S.ringKind), 'Rings: benzene, cyclohexane, cyclopentane (R)', 'opt'); }
+    h += tb('eraser', svgI('eraser'), 'Eraser (E)');
+    if (ed) h += tb('select', svgI('select'), 'Lasso: select, move, delete (S)');
+    h += '<span class="rail-sep"></span>';
+    h += `<button class="tb" type="button" id="tb-color" aria-label="Colour" title="Colour"><span class="swatch" id="swatch"></span></button>`;
+    h += `<button class="tb" type="button" id="tb-size" aria-label="Thickness" title="Thickness"><span class="sizedot" id="sizedot"></span></button>`;
+    h += '<span class="rail-sep"></span>';
+    h += tb('undo', svgI('undo'), 'Undo (Ctrl+Z)') + tb('redo', svgI('redo'), 'Redo (Ctrl+Shift+Z)');
+    h += '<span class="rail-sep"></span>';
+  }
+  h += tb('more', svgI('more'), 'More options');
+  rail.innerHTML = h;
+  rail.onclick = onRail;
+  if (S.tool === 'select' && !ed) S.tool = 'pen';
+  if ((S.tool === 'arrow' || S.tool === 'ring') && !ed) S.tool = 'pen';
+  syncRail(); updateUndo();
+  $('#board').classList.toggle('draw', canDraw()); $('#board').classList.toggle('pan', !canDraw());
+}
+function syncRail() {
+  for (const t of ['pen', 'hl', 'arrow', 'ring', 'eraser', 'select']) { const b = $('#tb-' + t); if (b) b.setAttribute('aria-pressed', String(S.tool === t)); }
+  const sp = $('#tb-sol'); if (sp) sp.setAttribute('aria-pressed', String(!S.showSol));
+  const pr = $('#tb-practice'); if (pr) pr.setAttribute('aria-pressed', String(S.practice));
+  const sw = $('#swatch'); if (sw) sw.style.setProperty('--sw', S.tool === 'hl' ? S.color.hl : S.color.pen);
+  const sd = $('#sizedot'); if (sd) { const key = S.tool === 'hl' ? 'hl' : S.tool === 'eraser' ? 'eraser' : 'pen'; sd.style.setProperty('--d', [6, 10, 15][S.size[key]] + 'px'); sd.style.color = S.tool === 'eraser' ? '#8c6f68' : (S.tool === 'hl' ? S.color.hl : S.color.pen); }
+}
+function setTool(t) { S.tool = t; LS.set('tool', t); if (t !== 'select') clearSel(); syncRail(); }
+function onRail(e) {
+  const b = e.target.closest('.tb'); if (!b) return; const id = b.id.slice(3);
+  if (['pen', 'hl', 'eraser', 'select'].includes(id)) { if (S.tool === id && id !== 'select') return openSizePop(b); setTool(id); closePop(); return; }
+  if (id === 'arrow' || id === 'ring') { if (S.tool === id) return id === 'arrow' ? openArrowPop(b) : openRingPop(b); setTool(id); closePop(); return; }
+  if (id === 'color') return openColorPop(b);
+  if (id === 'size') return openSizePop(b);
+  if (id === 'undo') return undo();
+  if (id === 'redo') return redo();
+  if (id === 'more') return openMorePop(b);
+  if (id === 'sol') { S.showSol = !S.showSol; buildRail(); setStatus(); Board.dirtyBase(); return; }
+  if (id === 'practice') { S.practice = !S.practice; if (S.practice && !['pen', 'hl', 'eraser'].includes(S.tool)) S.tool = 'pen'; buildRail(); setStatus(); Board.dirtyBase(); Board.updateThumb(); if (S.practice) toast('Practice is on. Your writing stays on this device.'); return; }
+}
+
+/* ---------------- popovers ---------------- */
+let popAnchor = null;
+function openPop(anchor, html, wire) {
+  const pop = $('#pop'); if (popAnchor === anchor && !pop.classList.contains('hidden')) return closePop();
+  pop.innerHTML = html; pop.classList.remove('hidden'); popAnchor = anchor;
+  const r = anchor.getBoundingClientRect(), pw = pop.offsetWidth, ph = pop.offsetHeight, vw = innerWidth, vh = innerHeight;
+  let x, y;
+  if (innerWidth <= 760) { x = clamp(r.left + r.width / 2 - pw / 2, 8, vw - pw - 8); y = r.top - ph - 10; if (y < 8) y = r.bottom + 10; }
+  else if (S.rail === 'right') { x = r.left - pw - 12; y = clamp(r.top - 8, 8, vh - ph - 8); }
+  else { x = r.right + 12; y = clamp(r.top - 8, 8, vh - ph - 8); }
+  pop.style.left = x + 'px'; pop.style.top = y + 'px';
+  wire && wire(pop);
+}
+function closePop() { $('#pop').classList.add('hidden'); popAnchor = null; }
+document.addEventListener('pointerdown', e => { const pop = $('#pop'); if (!pop.classList.contains('hidden') && !pop.contains(e.target) && !(popAnchor && popAnchor.contains(e.target))) closePop(); }, true);
+function openColorPop(b) {
+  const hl = S.tool === 'hl', list = hl ? HL : INK, cur = hl ? S.color.hl : S.color.pen;
+  openPop(b, `<h3>${hl ? 'Highlighter colour' : 'Ink colour'}</h3><div class="pop-grid">${list.map(([c, n]) => `<button class="sw" type="button" data-c="${c}" aria-label="${n}" title="${n}" aria-pressed="${c === cur}" style="--c:${c}"><i></i></button>`).join('')}</div>`, pop => {
+    pop.onclick = e => { const s = e.target.closest('.sw'); if (!s) return; if (hl) S.color.hl = s.dataset.c; else S.color.pen = s.dataset.c; if (S.tool === 'eraser' || S.tool === 'select') setTool('pen'); LS.set('color', S.color); syncRail(); closePop(); };
+  });
+}
+function openSizePop(b) {
+  const key = S.tool === 'hl' ? 'hl' : S.tool === 'eraser' ? 'eraser' : 'pen';
+  const names = key === 'eraser' ? ['Small eraser', 'Medium eraser', 'Large eraser'] : ['Fine', 'Medium', 'Bold'];
+  openPop(b, `<h3>${key === 'eraser' ? 'Eraser size' : 'Thickness'}</h3><div class="opt-list">${names.map((n, i) => `<button class="opt" type="button" data-i="${i}" aria-pressed="${S.size[key] === i}"><span class="sizedot" style="--d:${[6, 10, 15][i]}px"></span>${n}</button>`).join('')}</div>${key === 'eraser' ? '<p style="margin:8px 4px 0;font-size:12.5px;color:var(--muted)">The eraser removes whole strokes it touches.</p>' : ''}`, pop => {
+    pop.onclick = e => { const o = e.target.closest('.opt'); if (!o) return; S.size[key] = +o.dataset.i; LS.set('size', S.size); syncRail(); closePop(); };
+  });
+}
+function openArrowPop(b) {
+  const L = [['curly', 'Curly arrow', 'Draw freely; the head is added at the end. For mechanisms.'], ['arrow', 'Reaction arrow', 'Drag from start to end.'], ['eq', 'Equilibrium', 'Drag to draw ⇌.'], ['line', 'Straight line', 'Bonds, axes and tables.']];
+  openPop(b, `<h3>Arrows</h3><div class="opt-list">${L.map(([k, n, d]) => `<button class="opt" type="button" data-k="${k}" aria-pressed="${S.arrowKind === k}">${svgI(k)}<span>${n}<small>${d}</small></span></button>`).join('')}</div>`, pop => {
+    pop.onclick = e => { const o = e.target.closest('.opt'); if (!o) return; S.arrowKind = o.dataset.k; LS.set('arrowKind', S.arrowKind); setTool('arrow'); buildRail(); closePop(); };
+  });
+}
+function openRingPop(b) {
+  const L = [['kekule', 'Benzene (Kekulé)'], ['circle', 'Benzene (circle)'], ['hex', 'Cyclohexane'], ['pent', 'Cyclopentane']];
+  openPop(b, `<h3>Rings: drag from the centre outwards</h3><div class="opt-list">${L.map(([k, n]) => `<button class="opt" type="button" data-k="${k}" aria-pressed="${S.ringKind === k}">${svgI(k)}<span>${n}</span></button>`).join('')}</div>`, pop => {
+    pop.onclick = e => { const o = e.target.closest('.opt'); if (!o) return; S.ringKind = o.dataset.k; LS.set('ringKind', S.ringKind); setTool('ring'); buildRail(); closePop(); };
+  });
+}
+function openMorePop(b) {
+  const ed = editable(), stu = S.role === 'student' || S.readOnly, d = S.cur ? getDoc(S.cur) : null;
+  let h = '';
+  if (ed && d) h += `<h3>Paper below the question</h3><div class="seg" id="paperSeg">${['grid', 'lined', 'plain'].map(p => `<button type="button" data-p="${p}" aria-pressed="${d.paper === p}">${p[0].toUpperCase() + p.slice(1)}</button>`).join('')}</div>`;
+  h += '<div class="opt-list">';
+  if (canDraw()) h += `<button class="opt" type="button" data-a="space">${svgI('plus')}<span>Add writing space</span></button>`;
+  if (S.dl) h += `<button class="opt" type="button" data-a="dl">${svgI('download')}<span>Download as image<small>Question and working as a PNG</small></span></button>`;
+  if (canDraw()) h += `<button class="opt" type="button" data-a="finger" aria-pressed="${S.fingerDraw || !S.penSeen}">${svgI('finger')}<span>Draw with finger<small>${S.penSeen ? (S.fingerDraw ? 'On: fingers draw, two fingers scroll' : 'Off: stylus draws, fingers scroll') : 'No stylus seen yet, so fingers draw'}</small></span></button>`;
+  h += `<div class="opt" style="font-weight:400;font-size:13px;color:var(--muted);cursor:default">Zoom: pinch with two fingers, or Ctrl + scroll</div>`;
+  h += `<button class="opt" type="button" data-a="rail">${svgI('side')}<span>Move tools to the ${S.rail === 'left' ? 'right' : 'left'}</span></button>`;
+  if (ed && d) h += `<hr><button class="opt danger" type="button" data-a="clear">${svgI('trash')}<span>Clear this board<small>Removes all writing on this question</small></span></button>`;
+  if (stu && S.practice) h += `<hr><button class="opt danger" type="button" data-a="clearp">${svgI('trash')}<span>Clear my practice</span></button>`;
+  h += '</div>';
+  openPop(b, h, pop => {
+    pop.onclick = e => {
+      const p = e.target.closest('[data-p]'); if (p && d) { d.paper = p.dataset.p; markDirty(d); Board.dirtyBase(); closePop(); return; }
+      const o = e.target.closest('[data-a]'); if (!o) return; const a = o.dataset.a; closePop();
+      if (a === 'space') addSpace();
+      else if (a === 'dl') downloadImage();
+      else if (a === 'finger') { if (!S.penSeen) { toast('Fingers draw until a stylus touches the board.'); return; } S.fingerDraw = !S.fingerDraw; LS.set('fingerDraw', S.fingerDraw); toast(S.fingerDraw ? 'Fingers now draw. Scroll with two fingers.' : 'Stylus draws, fingers scroll.'); }
+      else if (a === 'rail') { S.rail = S.rail === 'left' ? 'right' : 'left'; LS.set('rail', S.rail); buildRail(); }
+      else if (a === 'clear') confirmDlg('Clear this board?', 'All writing on this question will be removed for everyone. You can undo straight after.', 'Clear board', () => { const dd = getDoc(S.cur); if (!dd.strokes.length) return; pushHist(dd, { t: 'clear', prev: dd.strokes.slice() }); dd.strokes = []; clearSel(); markDirty(dd); Board.dirtyBase(); });
+      else if (a === 'clearp') confirmDlg('Clear your practice?', 'Your own writing on this question will be removed from this device.', 'Clear practice', () => { const pd = getPDoc(S.cur); pushHist(pd, { t: 'clear', prev: pd.strokes.slice() }); pd.strokes = []; markDirty(pd); Board.dirtyBase(); });
+    };
+  });
+}
+function addSpace() { const d = editDoc(); d.h = Math.max(d.h || 0, Board.docH()) + 700; markDirty(d); Board.updateThumb(); Board.scrollTo(Board.sy + 500); }
+
+/* ---------------- dialogs + toast ---------------- */
+function confirmDlg(title, body, ok, fn) {
+  const root = $('#modalRoot');
+  root.innerHTML = `<div class="scrim" id="scrim"><div class="dialog" role="alertdialog" aria-modal="true" aria-labelledby="dlgT"><h2 id="dlgT">${esc(title)}</h2><p>${esc(body)}</p><div class="row"><button class="btn btn-glass" type="button" id="dlgNo">Keep it</button><button class="btn btn-danger" type="button" id="dlgOk">${esc(ok)}</button></div></div></div>`;
+  const close = () => (root.innerHTML = '');
+  $('#dlgNo').onclick = close; $('#dlgOk').onclick = () => { close(); fn(); }; $('#scrim').onclick = e => { if (e.target.id === 'scrim') close(); };
+  $('#dlgOk').focus();
+}
+let toastT = 0;
+function toast(msg) { const t = $('#toast'); t.textContent = msg; t.classList.add('show'); clearTimeout(toastT); toastT = setTimeout(() => t.classList.remove('show'), 3200); }
+function openSheet(which = 'reduction-potentials') {
+  const tabs = [['reduction-potentials', 'Standard reduction potentials'], ['atomic-masses', 'Relative atomic masses'], ['constants', 'Constants and units']];
+  const root = $('#modalRoot');
+  root.innerHTML = `<div class="scrim" id="scrim"><div class="sheet-dlg" role="dialog" aria-modal="true" aria-labelledby="shT"><div class="sheet-h"><h2 id="shT">Data sheet</h2><button class="ibtn" type="button" id="shX" aria-label="Close the data sheet"><svg class="i" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div><div class="seg" id="shSeg">${tabs.map(([k, n]) => `<button type="button" data-k="${k}" aria-pressed="${k === which}">${n}</button>`).join('')}</div><div class="sheet-body"><img id="shImg" alt="" src="ref-${which}.${which === 'reduction-potentials' ? 'jpg' : 'png'}"></div></div></div>`;
+  const close = () => (root.innerHTML = '');
+  $('#shImg').alt = tabs.find(t => t[0] === which)[1] + ' from the tutorial book';
+  $('#shX').onclick = close; $('#scrim').onclick = e => { if (e.target.id === 'scrim') close(); };
+  $('#shSeg').onclick = e => { const b = e.target.closest('[data-k]'); if (b) openSheet(b.dataset.k); };
+}
+
+/* ---------------- download ---------------- */
+async function downloadImage() {
+  if (!S.dl || !S.cur) return;
+  const it = BYID.get(S.cur), d = getDoc(it.id), H = Board.docH();
+  let k = 1.5; while (W * k * H * k > 14e6 && k > 0.5) k -= 0.1;
+  const c = document.createElement('canvas'); c.width = Math.round(W * k); c.height = Math.round(H * k);
+  const ctx = c.getContext('2d'); ctx.setTransform(k, 0, 0, k, 0, 0);
+  const img = Img.get(it); paintSheet(ctx, it, d.paper, 0, H, img, img.complete && img.naturalWidth > 0, k);
+  if (S.role !== 'student' || S.showSol) for (const s of d.strokes) drawStroke(ctx, s);
+  if (S.role === 'student') for (const s of getPDoc(it.id).strokes) drawStroke(ctx, s);
+  ctx.fillStyle = '#686583'; ctx.font = '13px "Atkinson Hyperlegible", sans-serif'; ctx.textBaseline = 'bottom';
+  ctx.fillText(`EC025 Chemistry 2, Chapter ${it.ch.n} ${it.ch.title}, ${(it.sec.num ? it.sec.num + ' ' : '') + it.sec.title}, ${it.label}`, QX, H - 12);
+  try {
+    const blob = await new Promise((res, rej) => c.toBlob(b => (b ? res(b) : rej(new Error('blob'))), 'image/png'));
+    const name = `EC025 Ch${String(it.ch.n).padStart(2, '0')} ${(it.sec.num || it.sec.title).replace(/[^\w.\- ]/g, '')} ${it.short.replace(/[^\w\- ]/g, '-')}.png`;
+    await S.dl.save({ filename: name, data: blob }); toast('Image saved');
+  } catch (e) { if (e && e.code === 'declined') return; toast(e && e.code === 'unavailable' ? 'Downloads aren\'t available here.' : 'Couldn\'t make the image. Try again.'); }
+}
+
+/* ---------------- navigation + rendering ---------------- */
+function solvedCount(list) { let n = 0; for (const it of list) { const m = S.meta.get(it.id); if (m && m.n > 0) n++; } return n; }
+function chapterItems(ch) { return ch.sections.flatMap(s => s.items); }
+function renderNav() {
+  const nav = $('#nav'), q = $('#q').value.trim().toLowerCase();
+  if (q) return renderSearch(q);
+  const curSec = S.cur ? BYID.get(S.cur).sec : (S.view === 'forum' ? SECS.get(S.fsec) : null);
+  nav.innerHTML = DATA.chapters.map(ch => {
+    const open = S.open.has(ch.n), all = chapterItems(ch);
+    return `<div class="chap ${open ? 'open' : ''}" data-ch="${ch.n}">
+      <button class="chap-head" type="button" aria-expanded="${open}" data-ch="${ch.n}">
+        <span class="mini" data-g="${GROUP(ch.n)}">${ch.n}</span>
+        <span class="chap-title">${esc(ch.title)}</span>
+        <span class="chap-count" data-cc="${ch.n}">${solvedCount(all)}/${all.length}</span>
+      </button>
+      <div class="secs">${ch.sections.map(s => `<button class="sec ${curSec === s ? 'cur' : ''}" type="button" data-sec="${s.id}">
+          <span class="sec-num ${s.num ? '' : 'tag'}">${s.num ? esc(s.num) : s.kind === 'pspm' ? 'PSPM' : 'Names'}</span>
+          <span class="sec-title">${esc(s.title)}<small class="sec-f" data-sf="${s.id}">${fLabel(s.id)}</small></span><span class="sec-count" data-sc="${s.id}">${solvedCount(s.items)}/${s.items.length}</span></button>`).join('')}</div>
+    </div>`;
+  }).join('');
+}
+function renderSearch(q) {
+  const terms = q.split(/\s+/).filter(Boolean);
+  const hits = [];
+  for (const it of ITEMS) {
+    const hay = (it.label + ' ' + it.sec.title + ' ' + it.ch.title + ' ' + (it.sec.num || '') + ' ' + it.text).toLowerCase();
+    if (terms.every(t => hay.includes(t))) hits.push(it); if (hits.length >= 60) break;
+  }
+  $('#nav').innerHTML = `<div class="results">${hits.length ? hits.map(it => `<button class="res" type="button" data-q="${it.id}"><b>Ch ${it.ch.n}, ${esc(it.sec.num ? it.sec.num + ' ' : '')}${esc(it.label)}</b><span>${esc(it.text || it.sec.title)}</span></button>`).join('') : `<div class="empty-res">No questions match “${esc(q)}”. Try a compound or topic, such as enthalpy or Grignard.</div>`}</div>`;
+}
+function refreshProgress() {
+  if (!DATA) return;
+  for (const ch of DATA.chapters) { const el = document.querySelector(`[data-cc="${ch.n}"]`); if (el) { const all = chapterItems(ch); el.textContent = `${solvedCount(all)}/${all.length}`; }
+    for (const s of ch.sections) { const e2 = document.querySelector(`[data-sc="${s.id}"]`); if (e2) e2.textContent = `${solvedCount(s.items)}/${s.items.length}`; } }
+  for (const c of document.querySelectorAll('.chip[data-q]')) { const m = S.meta.get(c.dataset.q); c.classList.toggle('has', !!(m && m.n > 0)); }
+  if (!$('#viewHome').classList.contains('hidden')) renderHome();
+}
+function renderHome() {
+  if (!DATA) return;
+  const total = ITEMS.length, solved = solvedCount(ITEMS);
+  const last = LS.get('last', null), lastIt = last && BYID.get(last);
+  const lead = {
+    lecturer: 'Every question from the tutorial book sits on its own whiteboard. Pick a chapter, write the working with your stylus, and it saves for your students to revisit after class.',
+    student: 'Every question from the tutorial book, with your lecturer\'s working saved on it. Practise first, compare, then share a reflection in each section\'s forum.',
+    local: 'Every question from the tutorial book sits on its own whiteboard. Writing here stays in this browser.',
+    pending: 'Every question from the tutorial book sits on its own whiteboard, ready for a stylus.'
+  }[S.readOnly ? 'student' : S.role];
+  $('#homePanel').innerHTML = `<div class="home-in">
+    <section class="hero">
+      <div>
+        <div class="hero-k">EC025 Chemistry 2, Semester 2, Session 2026/2027</div>
+        <h1>Chemistry 2 tutorial board</h1>
+        <p>${lead}</p>
+        <div class="cta-row">
+          ${lastIt ? `<button class="btn btn-primary" type="button" data-q="${lastIt.id}">Continue: Chapter ${lastIt.ch.n}, ${esc(lastIt.short)}</button>` : `<button class="btn btn-primary" type="button" data-q="${ITEMS[0].id}">Start with Chapter 1</button>`}
+          <button class="btn btn-glass" type="button" data-sheet="1">${svgI('grid')}Data sheet</button>
+        </div>
+      </div>
+      ${HERO_ART}
+    </section>
+    <div class="sec-h"><h2>Chapters</h2><p>${solved} of ${total} questions have worked solutions</p></div>
+    <div class="ptable">${DATA.chapters.map(ch => { const all = chapterItems(ch), s = solvedCount(all); return `<button class="tile" type="button" data-g="${GROUP(ch.n)}" data-ch="${ch.n}" aria-label="Chapter ${ch.n}: ${esc(ch.title)}, ${s} of ${all.length} solved">
+      <span class="t-head"><b>${ch.n}</b><span>${all.length} questions</span></span>
+      <span class="t-name">${esc(ch.title)}</span>
+      <span class="t-wrap"><span class="t-meter"><i style="width:${all.length ? (100 * s / all.length).toFixed(1) : 0}%"></i></span><span class="t-meta" style="display:block">${s} of ${all.length} solved</span></span>
+    </button>`; }).join('')}</div>
+    ${recentHTML()}
+    <div class="legend"><span><i style="background:linear-gradient(150deg,#EEF6FF,#A9D0F8)"></i>Physical chemistry, chapters 1 to 3</span><span><i style="background:linear-gradient(150deg,#ECFAF4,#9CDFC5)"></i>Organic chemistry, chapters 4 to 12</span></div>
+  </div>`;
+  if (F.users.size) nameAll();
+}
+function recentHTML() {
+  if (!S.db || !F.users.size) return '';
+  const all = []; for (const [uid, posts] of F.users) for (const p of posts) all.push(Object.assign({ uid }, p));
+  if (!all.length) return '';
+  all.sort((a, b) => (b.at || '').localeCompare(a.at || ''));
+  return `<div class="sec-h" style="margin-top:26px"><h2>From the class forum</h2><p>${all.length} reflection${all.length > 1 ? 's' : ''} so far</p></div><div class="recent">${all.slice(0, 6).map(p => { const sec = SECS.get(p.s);
+    return `<button class="rec" type="button" data-forum="${p.s}" data-uid="${esc(p.uid)}"><span class="r-sec">${esc((sec.num ? sec.num + ' ' : '') + sec.title)}</span><span class="r-txt">${esc(p.t || 'Handwritten reflection')}</span><span class="r-by"><span class="nm">Classmate</span>, ${esc(fmtTime(p.at))}</span></button>`; }).join('')}</div>`;
+}
+function renderTop() {
+  const it = S.cur ? BYID.get(S.cur) : null, sec = it ? it.sec : (S.view === 'forum' ? SECS.get(S.fsec) : null);
+  const crumb = $('#crumb'), chips = $('#chips');
+  if (!sec) { crumb.innerHTML = '<div class="crumb-a">EC025 Chemistry 2</div><div class="crumb-b">Tutorial book</div>'; chips.innerHTML = ''; $('#prevBtn').disabled = $('#nextBtn').disabled = true; return; }
+  crumb.innerHTML = `<div class="crumb-a">Chapter ${sec.ch.n}, ${esc(sec.ch.title)}</div><div class="crumb-b">${esc((sec.num ? sec.num + ' ' : '') + sec.title)}</div>`;
+  chips.innerHTML = sec.items.map(q => { const m = S.meta.get(q.id); return `<button class="chip ${it && q.id === it.id ? 'cur' : ''} ${m && m.n > 0 ? 'has' : ''}" type="button" data-q="${q.id}" aria-current="${!!it && q.id === it.id}" title="${esc(q.label)}">${esc(q.short)}</button>`; }).join('')
+    + `<button class="chip chip-forum ${it ? '' : 'cur'}" type="button" data-forum="${sec.id}" aria-current="${!it}" title="Class forum for this section">${svgI('forum')}Forum<span class="fc" data-fc="${sec.id}">${F.counts.get(sec.id) || ''}</span></button>`;
+  const c = chips.querySelector('.cur'); if (c) c.scrollIntoView({ block: 'nearest', inline: 'center' });
+  const last = sec.items[sec.items.length - 1];
+  $('#prevBtn').disabled = !!it && it.idx === 0; $('#nextBtn').disabled = (it ? it.idx : last.idx) === ITEMS.length - 1;
+}
+function showView(v) { S.view = v; for (const [id, k] of [['#viewHome', 'home'], ['#viewBoard', 'board'], ['#viewForum', 'forum']]) $(id).classList.toggle('hidden', v !== k); }
+function goHome() {
+  if (S.cur) { const d = docs.get(S.cur); if (d && d.dirty) saveDoc(d); }
+  saveDraft(); S.cur = null; S.fsec = null; clearSel(); showView('home'); renderTop(); renderNav(); renderHome();
+  setHash('home');
+}
+function setHash(h) { if (location.hash.slice(1) === h) return; try { location.replace('#' + h); } catch { location.hash = h; } }
+async function openQ(id) {
+  const it = BYID.get(id); if (!it) return goHome();
+  if (S.cur && S.cur !== id) { const prev = docs.get(S.cur); if (prev && prev.dirty) saveDoc(prev); const pp = pdocs.get(S.cur); if (pp && pp.dirty) saveDoc(pp); }
+  Input.abort(); closePop(); saveDraft(); S.fsec = null;
+  S.cur = id; LS.set('last', id); S.open.add(it.ch.n);
+  setHash(id);
+  showView('board'); renderTop(); renderNav();
+  const sc = document.querySelector('.sec.cur'); if (sc) sc.scrollIntoView({ block: 'nearest' });
+  document.body.classList.remove('drawer');
+  const d = getDoc(id);
+  Board.setItem(it); updateUndo(); setStatus();
+  Img.preload(ITEMS[it.idx + 1]); Img.preload(ITEMS[it.idx - 1]);
+  if (!d.loaded) {
+    try { await loadDoc(id); } catch (e) { d.loaded = true; fitHeight(d, it); if (S.cur === id) toast('Couldn\'t load the saved working. Check the connection and reopen the question.'); }
+    if (S.cur === id) { Board.updateThumb(); Board.dirtyBase(); setStatus(); updateUndo(); }
+  }
+}
+function step(dir) {
+  if (S.view === 'forum') { const sec = SECS.get(S.fsec), last = sec.items[sec.items.length - 1]; const n = dir < 0 ? last : ITEMS[last.idx + 1]; if (n) openQ(n.id); return; }
+  const it = S.cur ? BYID.get(S.cur) : null; const n = it ? ITEMS[it.idx + dir] : ITEMS[0]; if (n) openQ(n.id);
+}
+function route() {
+  const h = decodeURIComponent(location.hash.slice(1));
+  if (h && BYID.has(h)) { if (h !== S.cur) openQ(h); }
+  else if (h.startsWith('forum-') && SECS.has(h.slice(6))) { if (!(S.view === 'forum' && S.fsec === h.slice(6))) openForum(h.slice(6)); }
+  else if (S.view !== 'home' || !$('#homePanel').innerHTML) goHome();
+}
+
+/* ---------------- events ---------------- */
+function wire() {
+  $('#nav').addEventListener('click', e => {
+    const ch = e.target.closest('.chap-head'); if (ch) { const n = +ch.dataset.ch; S.open.has(n) ? S.open.delete(n) : S.open.add(n); renderNav(); return; }
+    const sec = e.target.closest('.sec'); if (sec) { const s = DATA.chapters.flatMap(c => c.sections).find(x => x.id === sec.dataset.sec); if (s) { const cur = S.cur && BYID.get(S.cur); openQ(cur && cur.sec === s ? cur.id : s.items[0].id); } return; }
+    const r = e.target.closest('.res'); if (r) { openQ(r.dataset.q); }
+  });
+  $('#q').addEventListener('input', () => renderNav());
+  $('#q').addEventListener('keydown', e => { if (e.key === 'Escape') { e.target.value = ''; renderNav(); } if (e.key === 'Enter') { const f = $('#nav .res'); if (f) openQ(f.dataset.q); } });
+  $('#chips').addEventListener('click', e => { const c = e.target.closest('.chip'); if (!c) return; if (c.dataset.forum) openForum(c.dataset.forum); else openQ(c.dataset.q); });
+  $('#homePanel').addEventListener('click', e => {
+    const t = e.target.closest('.tile'); if (t) { const ch = DATA.chapters.find(c => c.n === +t.dataset.ch); if (ch) openQ(ch.sections[0].items[0].id); return; }
+    const fr = e.target.closest('[data-forum]'); if (fr) return openForum(fr.dataset.forum);
+    const q = e.target.closest('[data-q]'); if (q) return openQ(q.dataset.q);
+    if (e.target.closest('[data-sheet]')) openSheet();
+  });
+  $('#brand').onclick = () => goHome();
+  $('#prevBtn').onclick = () => step(-1); $('#nextBtn').onclick = () => step(1);
+  $('#sheetBtn').onclick = () => openSheet();
+  $('#menuBtn').onclick = () => { if (innerWidth <= 1080) document.body.classList.toggle('drawer'); else toggleFocus(); };
+  $('#sideScrim').onclick = () => document.body.classList.remove('drawer');
+  $('#focusBtn').onclick = () => toggleFocus();
+  $('#addSpace').onclick = () => addSpace();
+  $('#zoomPill').onclick = () => { Board.zoom = 1; Board.sx = 0; Board.resize(); updateZoomPill(); };
+  $('#status').onclick = () => { const d = S.cur && getDoc(S.cur); if (d && d.err && !S.readOnly) { d.err = null; saveDoc(d); } };
+  $('#selDel').onclick = () => { const d = editDoc(); const items = []; d.strokes.forEach((s, i) => { if (Sel.set.has(s)) items.push({ s, i }); }); for (let j = items.length - 1; j >= 0; j--) d.strokes.splice(items[j].i, 1); pushHist(d, { t: 'erase', items }); Sel.set.clear(); Sel.showBar(false); markDirty(d); Board.dirtyBase(); Board.dirtyLive(); };
+  $('#selDup').onclick = () => { const d = editDoc(); const copies = [...Sel.set].map(s => mkStroke({ t: s.t, c: s.c, w: s.w, k: s.k, pts: s.pts.map((v, i) => (i % 3 === 2 ? v : v + 24)) })); d.strokes.push(...copies); pushHist(d, { t: 'add', s: copies }); Sel.set = new Set(copies); markDirty(d); Board.dirtyBase(); Board.dirtyLive(); };
+  $('#selDone').onclick = () => clearSel();
+  addEventListener('hashchange', route);
+  wireForum();
+  addEventListener('keydown', e => {
+    if (e.target.closest && e.target.closest('input,textarea')) return;
+    if ($('#modalRoot').innerHTML && e.key === 'Escape') { $('#modalRoot').innerHTML = ''; return; }
+    if (e.key === 'Escape') { closePop(); clearSel(); return; }
+    if (!S.cur) return;
+    const mod = e.metaKey || e.ctrlKey;
+    if (mod && e.key.toLowerCase() === 'z') { e.preventDefault(); if (canDraw()) e.shiftKey ? redo() : undo(); return; }
+    if (mod && e.key.toLowerCase() === 'y') { e.preventDefault(); if (canDraw()) redo(); return; }
+    if (mod) return;
+    if (e.key === 'ArrowRight') step(1); else if (e.key === 'ArrowLeft') step(-1);
+    else if (e.key === '=' || e.key === '+') Board.setZoom(Board.zoom * 1.25);
+    else if (e.key === '-') Board.setZoom(Board.zoom / 1.25);
+    else if (e.key === '0') { Board.zoom = 1; Board.sx = 0; Board.resize(); updateZoomPill(); }
+    else if (e.key === ' ') { Input.space = true; }
+    else if (canDraw()) { const m = { p: 'pen', h: 'hl', e: 'eraser' }; if (editable()) Object.assign(m, { a: 'arrow', r: 'ring', s: 'select' }); const t = m[e.key.toLowerCase()]; if (t) setTool(t); }
+    if ((e.key === 'Delete' || e.key === 'Backspace') && Sel.set.size) $('#selDel').click();
+  });
+  addEventListener('keyup', e => { if (e.key === ' ') Input.space = false; });
+  document.addEventListener('visibilitychange', () => { if (document.hidden) flushAll(); });
+  addEventListener('pagehide', flushAll);
+  addEventListener('beforeunload', e => { for (const d of docs.values()) if (d.dirty || d.saving) { flushAll(); e.preventDefault(); e.returnValue = ''; return; } });
+}
+function updateZoomPill() { const p = $('#zoomPill'); if (!p) return; const on = Board.zoom > 1.01; p.classList.toggle('hidden', !on); if (on) $('#zoomT').textContent = Math.round(Board.zoom * 100) + '%'; }
+function toggleFocus() { document.body.classList.toggle('focus'); setTimeout(() => Board.resize(), 300); }
+
+const HERO_ART = `<svg class="hero-art" viewBox="0 0 460 320" role="img" aria-label="Glassware: a conical flask, a round-bottom flask, a test tube and a ball-and-stick model of ethanol">
+  <defs>
+    <linearGradient id="hl1" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#E7E1FF"/><stop offset="1" stop-color="#A597F0"/></linearGradient>
+    <linearGradient id="hl2" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#DDF7EE"/><stop offset="1" stop-color="#86D3BA"/></linearGradient>
+    <linearGradient id="hl3" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#FFF4C4"/><stop offset="1" stop-color="#F2CD62"/></linearGradient>
+    <radialGradient id="hC" cx=".35" cy=".3" r=".75"><stop offset="0" stop-color="#A3A0CC"/><stop offset=".55" stop-color="#4B4A72"/><stop offset="1" stop-color="#2D2A44"/></radialGradient>
+    <radialGradient id="hH" cx=".35" cy=".3" r=".75"><stop offset="0" stop-color="#fff"/><stop offset=".7" stop-color="#EEF0FA"/><stop offset="1" stop-color="#C9CFE8"/></radialGradient>
+    <radialGradient id="hO" cx=".35" cy=".3" r=".75"><stop offset="0" stop-color="#DDEEFF"/><stop offset=".6" stop-color="#8CC0F0"/><stop offset="1" stop-color="#4C8FD6"/></radialGradient>
+    <clipPath id="hrb"><circle cx="352" cy="232" r="56"/></clipPath>
+    <filter id="soft" x="-20%" y="-20%" width="140%" height="140%"><feGaussianBlur stdDeviation="6"/></filter>
+  </defs>
+  <ellipse cx="230" cy="302" rx="200" ry="12" fill="#5A67D0" opacity=".12" filter="url(#soft)"/>
+  <!-- test tube -->
+  <g transform="rotate(-12 60 200)">
+    <path d="M44 96V250a17 17 0 0 0 34 0V96" fill="rgba(255,255,255,.55)" stroke="#4B4A72" stroke-opacity=".55" stroke-width="2.4"/>
+    <path d="M45.5 196H76.5V250a15.5 15.5 0 0 1-31 0z" fill="url(#hl3)" opacity=".9"/>
+    <rect x="38" y="88" width="46" height="10" rx="5" fill="#fff" stroke="#4B4A72" stroke-opacity=".5" stroke-width="2"/>
+    <path d="M52 108V240" stroke="#fff" stroke-width="3.5" stroke-linecap="round" opacity=".85"/>
+  </g>
+  <!-- conical flask -->
+  <g transform="translate(96 40)">
+    <path d="M52 168Q104 158 156 168L188 238Q196 258 172 258H36Q12 258 20 238Z" fill="url(#hl1)" opacity=".92"/>
+    <ellipse cx="104" cy="166" rx="51" ry="6" fill="#F1EEFF" opacity=".85"/>
+    <path d="M84 20V102L20 238Q12 258 36 258H172Q196 258 188 238L124 102V20" fill="rgba(255,255,255,.42)" stroke="#4B4A72" stroke-opacity=".6" stroke-width="2.6" stroke-linejoin="round"/>
+    <rect x="76" y="10" width="56" height="13" rx="6.5" fill="#fff" stroke="#4B4A72" stroke-opacity=".55" stroke-width="2.2"/>
+    <path d="M94 32V104L40 222" fill="none" stroke="#fff" stroke-width="4.5" stroke-linecap="round" opacity=".9"/>
+    <g fill="#fff" opacity=".9"><circle class="bub" cx="86" cy="236" r="5"/><circle class="bub" cx="118" cy="226" r="3.6"/><circle class="bub" cx="140" cy="242" r="4.2"/><circle class="bub" cx="104" cy="214" r="2.6"/></g>
+    <g stroke="#4B4A72" stroke-opacity=".45" stroke-width="2"><path d="M168 200h-12M174 214h-12M180 228h-12"/></g>
+  </g>
+  <!-- round-bottom flask -->
+  <g>
+    <rect x="290" y="236" width="124" height="60" fill="url(#hl2)" clip-path="url(#hrb)" opacity=".9"/>
+    <path d="M338 132V180A56 56 0 1 0 366 180V132" fill="rgba(255,255,255,.42)" stroke="#4B4A72" stroke-opacity=".6" stroke-width="2.6"/>
+    <rect x="331" y="123" width="42" height="12" rx="6" fill="#fff" stroke="#4B4A72" stroke-opacity=".55" stroke-width="2.2"/>
+    <path d="M318 204A42 42 0 0 0 312 246" fill="none" stroke="#fff" stroke-width="4.5" stroke-linecap="round" opacity=".9"/>
+  </g>
+  <!-- ethanol, ball and stick -->
+  <g transform="translate(250 6)">
+    <g stroke="#5C5B85" stroke-opacity=".6" stroke-width="5" stroke-linecap="round"><path d="M44 52L92 74M92 74L138 48M138 48L170 64M44 52L22 26M44 52L18 76M44 52L54 16M92 74L82 106M92 74L118 102"/></g>
+    <circle cx="22" cy="26" r="9" fill="url(#hH)"/><circle cx="18" cy="76" r="9" fill="url(#hH)"/><circle cx="54" cy="16" r="9" fill="url(#hH)"/>
+    <circle cx="82" cy="106" r="9" fill="url(#hH)"/><circle cx="118" cy="102" r="9" fill="url(#hH)"/><circle cx="170" cy="64" r="9" fill="url(#hH)"/>
+    <circle cx="44" cy="52" r="15" fill="url(#hC)"/><circle cx="92" cy="74" r="15" fill="url(#hC)"/><circle cx="138" cy="48" r="14" fill="url(#hO)"/>
+  </g>
+</svg>`;
+
+/* ---------------- class forum ----------------
+   forum/{uid}            one doc per person: { v, posts:[{id, s(section), at, t(text), ink, h}] }
+   forum/{uid}/p/{postId} handwriting for one post: { s, h, st:[encoded strokes] }
+   config/staff           ids of lecturers (only Editors/Owner can write it), for the "Lecturer" badge
+   Everyone reads; each person writes only their own forum/{uid}; the lecturer can remove any post. */
+const F = { ready: false, users: new Map(), staff: new Set(), me: null, canPost: null, ink: new Map(), sec: null, drafts: new Map(), counts: new Map(), names: new Map(), needSignIn: false };
+// On the public site each person's forum entry also carries their Google display name and photo, so classmates see who wrote
+function ownMeta() { const w = S.who; if (S.backend !== 'firebase' || !w) return {}; return { name: (w.name || w.email.split('@')[0]).slice(0, 80), photo: /^https:\/\//.test(w.photo) ? w.photo.slice(0, 500) : '' }; }
+function keptMeta(v) { const o = {}; if (v && typeof v.name === 'string') o.name = v.name.slice(0, 80); if (v && typeof v.photo === 'string' && /^https:\/\//.test(v.photo)) o.photo = v.photo.slice(0, 500); return o; }
+function avatarFor(name) {
+  const cols = ['#C9C2F7', '#BFE0F7', '#BCEBD9', '#FBE7A6', '#D8D3F2'], ch = (name || '?').trim().charAt(0).toUpperCase() || '?';
+  let h = 0; for (const c of name || '') h = (h * 31 + c.charCodeAt(0)) >>> 0;
+  return 'data:image/svg+xml,' + encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 40 40"><rect width="40" height="40" fill="${cols[h % cols.length]}"/><text x="20" y="26" font-size="17" font-family="system-ui,sans-serif" font-weight="700" text-anchor="middle" fill="#2D2A44">${esc(ch)}</text></svg>`);
+}
+const PADW = 1000;
+const fLabel = id => { const n = F.counts.get(id) || 0; return n ? `${n} reflection${n > 1 ? 's' : ''}` : ''; };
+function cleanPosts(v) {
+  const arr = v && Array.isArray(v.posts) ? v.posts : [], out = [];
+  for (const p of arr.slice(0, 300)) {
+    if (!p || typeof p.id !== 'string' || !/^p[a-z0-9]{4,40}$/.test(p.id) || typeof p.s !== 'string' || !SECS.has(p.s)) continue;
+    out.push({ id: p.id, s: p.s, at: typeof p.at === 'string' ? p.at.slice(0, 40) : '', t: typeof p.t === 'string' ? p.t.slice(0, 4000) : '', ink: p.ink ? 1 : 0, h: clamp(+p.h || 0, 0, 3000) });
+  }
+  return out;
+}
+async function forumInit() {
+  if (!S.db || F.started) return; F.started = true;
+  try { F.me = S.user ? await S.user.id() : null; } catch {}
+  if (S.backend === 'firebase' && !F.me) { F.needSignIn = true; F.ready = true; F.canPost = false; if (S.view === 'forum') { updateComposerAvail(); renderFeed(); } return; }
+  try {
+    const st = await withRetry(() => S.db.doc('config/staff').get()); const v = st.exists ? st.data() : null;
+    if (v && Array.isArray(v.ids)) v.ids.forEach(x => typeof x === 'string' && F.staff.add(x));
+    if (S.role === 'lecturer' && F.me && !F.staff.has(F.me)) { F.staff.add(F.me); await S.db.doc('config/staff').set({ ids: [...F.staff].slice(0, 50) }); }
+  } catch {}
+  const t = setTimeout(() => { if (!F.ready) { F.ready = true; if (S.view === 'forum') renderFeed(); } }, 10000);
+  try {
+    S.db.collection('forum').onSnapshot(snap => {
+      for (const ch of snap.docChanges()) {
+        if (ch.type === 'removed') { F.users.delete(ch.doc.id); continue; }
+        const v = ch.doc.data(); F.users.set(ch.doc.id, cleanPosts(v));
+        const m = keptMeta(v); if (m.name) F.names.set(ch.doc.id, m);
+      }
+      if (!snap.metadata.fromCache) { F.ready = true; clearTimeout(t); }
+      recount();
+    }, err => { F.ready = true; clearTimeout(t); if (err && err.code !== 'revoked') toast('Forum updates stopped. Reload to see new posts.'); if (S.view === 'forum') renderFeed(); });
+  } catch { F.ready = true; }
+}
+function recount() {
+  F.counts = new Map(); for (const posts of F.users.values()) for (const p of posts) F.counts.set(p.s, (F.counts.get(p.s) || 0) + 1);
+  for (const el of document.querySelectorAll('[data-sf]')) el.textContent = fLabel(el.dataset.sf);
+  for (const el of document.querySelectorAll('[data-fc]')) el.textContent = F.counts.get(el.dataset.fc) || '';
+  const cc = document.querySelector('#chips .cur'); if (cc) cc.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+  if (S.view === 'forum') renderFeed();
+  if (S.view === 'home') renderHome();
+}
+function openForum(secId) {
+  const sec = SECS.get(secId); if (!sec) return goHome();
+  if (S.cur) { const d = docs.get(S.cur); if (d && d.dirty) saveDoc(d); const pd = pdocs.get(S.cur); if (pd && pd.dirty) saveDoc(pd); }
+  Input.abort(); closePop(); clearSel(); saveDraft();
+  S.cur = null; S.fsec = secId; F.sec = secId; S.open.add(sec.ch.n);
+  setHash('forum-' + secId); showView('forum'); renderTop(); renderNav();
+  const sc = document.querySelector('.sec.cur'); if (sc) sc.scrollIntoView({ block: 'nearest' });
+  document.body.classList.remove('drawer');
+  const name = (sec.num ? sec.num + ' ' : '') + sec.title;
+  $('#fK').textContent = `Class forum, Chapter ${sec.ch.n}: ${sec.ch.title}`;
+  $('#fTitle').textContent = name;
+  $('#fPrompt').textContent = `Share a reflection on ${name}: what clicked for you, what still feels confusing, or a tip that could help a classmate.`;
+  loadDraft(secId); updateComposerAvail(); $('#feed').innerHTML = ''; renderFeed(); $('#forum').scrollTop = 0;
+}
+function updateComposerAvail() {
+  const n = $('#fNotice'), w = $('#fWrite');
+  let msg = '', withBtn = false;
+  if (!S.db) msg = S.role === 'pending' ? 'Connecting to the class forum…' : (S.backend === 'none' ? 'The class forum isn\'t connected to its database yet.' : 'The class forum shares posts through Claude. Open this page signed in to Claude to read and post.');
+  else if (F.needSignIn) { msg = 'Sign in with Google to read and share reflections with your classmates.'; withBtn = true; }
+  else if (F.canPost === false) msg = S.backend === 'firebase' ? 'Posting didn\'t work for this account. Sign out, sign in again, and try once more.' : 'You can read your classmates\' reflections. Posting needs Contributor access to this page, so ask your lecturer to share it with you as a Contributor.';
+  n.textContent = msg; if (withBtn) n.insertAdjacentHTML('beforeend', '<br>' + signInBtn()); n.classList.toggle('hidden', !msg);
+  const note = document.querySelector('.c-note'); if (note) note.textContent = S.backend === 'firebase' ? 'Classmates who sign in will see your name and post.' : 'Everyone who can open this page will see your name and post.';
+  w.disabled = !S.db || F.canPost === false;
+  $('#fPost').disabled = F.canPost === false;
+}
+async function canPostProbe() {
+  if (F.canPost !== null) return F.canPost;
+  if (!S.db || !F.me) { F.canPost = false; return false; }
+  if (S.role === 'lecturer') { F.canPost = true; return true; }
+  try {
+    const snap = await withRetry(() => S.db.doc('forum/' + F.me).get());
+    if (!snap.exists) await S.db.doc('forum/' + F.me).set(Object.assign({ v: 1, posts: [] }, ownMeta()));   // creating your own (empty) entry checks you may post
+    F.canPost = true;
+  } catch (e) { F.canPost = e && e.code === 'invalid_argument' ? false : null; }
+  return F.canPost;
+}
+function saveDraft() {
+  if (!F.sec) return;
+  const t = $('#fText').value, open = !$('#composer').classList.contains('hidden');
+  if (t || Pad.strokes.length || open) F.drafts.set(F.sec, { t, s: Pad.strokes.slice(), h: Pad.h, open, hist: Pad.hist.slice() });
+  else F.drafts.delete(F.sec);
+}
+function loadDraft(sec) {
+  const d = F.drafts.get(sec);
+  $('#fText').value = d ? d.t : '';
+  Pad.strokes = d ? d.s.slice() : []; Pad.hist = d ? d.hist.slice() : []; Pad.h = d ? d.h : 420;
+  $('#composer').classList.toggle('hidden', !(d && d.open));
+  if (d && d.open) requestAnimationFrame(() => Pad.size());
+}
+
+/* handwriting pad for posts */
+const Pad = {
+  c: null, ctx: null, strokes: [], hist: [], h: 420, tool: 'pen', color: '#33231F', act: null, scale: 1, dpr: 1, rect: null,
+  init() {
+    this.c = $('#padC'); this.ctx = this.c.getContext('2d');
+    new ResizeObserver(() => this.size()).observe($('#pad'));
+    const c = this.c;
+    c.addEventListener('pointerdown', e => this.down(e)); c.addEventListener('pointermove', e => this.move(e));
+    c.addEventListener('pointerup', e => this.up(e)); c.addEventListener('pointercancel', e => this.up(e));
+    for (const t of ['touchstart', 'touchmove']) c.addEventListener(t, e => { if (e.cancelable) e.preventDefault(); }, { passive: false });
+  },
+  size() { const w = $('#pad').clientWidth; if (!w) return; this.dpr = Math.min(devicePixelRatio || 1, 2.5); this.scale = w / PADW; const hh = this.h * this.scale;
+    this.c.style.height = hh + 'px'; this.c.width = Math.round(w * this.dpr); this.c.height = Math.round(hh * this.dpr); this.draw(); },
+  draw() {
+    if (!this.ctx) return; const ctx = this.ctx, k = this.scale * this.dpr;
+    ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.clearRect(0, 0, this.c.width, this.c.height); ctx.setTransform(k, 0, 0, k, 0, 0);
+    for (const s of this.strokes) drawStroke(ctx, s);
+    const a = this.act;
+    if (a && a.kind === 'draw') { const s = a.s; if (getStroke) { ctx.fillStyle = s.c; ctx.fill(pfPath(s.pts, s.w, false)); } else { ctx.strokeStyle = s.c; ctx.lineWidth = s.w; ctx.lineCap = ctx.lineJoin = 'round'; ctx.stroke(polyPath(s.pts)); } }
+    $('#padHint').classList.toggle('hidden', !!(this.strokes.length || a));
+  },
+  xy(e) { const r = this.rect; return [(e.clientX - r.left) / this.scale, clamp((e.clientY - r.top) / this.scale, 0, this.h)]; },
+  down(e) {
+    if (e.pointerType === 'pen' && !S.penSeen) { S.penSeen = true; LS.set('penSeen', true); }
+    if (e.pointerType === 'touch' && S.penSeen && !S.fingerDraw) return;     // palm rest while writing with a stylus
+    if (this.act || e.button > 0) return;
+    e.preventDefault(); try { this.c.setPointerCapture(e.pointerId); } catch {}
+    this.rect = this.c.getBoundingClientRect(); const [x, y] = this.xy(e);
+    const erase = this.tool === 'eraser' || (e.pointerType === 'pen' && (e.button === 5 || (e.buttons & 32)));
+    if (erase) { this.act = { kind: 'erase', pid: e.pointerId, x, y, items: [] }; this.erase(x, y, x, y); }
+    else this.act = { kind: 'draw', pid: e.pointerId, s: { t: 'pen', c: this.color, w: 3.8, pts: [x, y, Input.pr(e)] } };
+    this.draw();
+  },
+  move(e) {
+    const a = this.act; if (!a || e.pointerId !== a.pid) return;
+    const evs = e.getCoalescedEvents ? e.getCoalescedEvents() : null, list = evs && evs.length ? evs : [e];
+    for (const ev of list) { const [x, y] = this.xy(ev);
+      if (a.kind === 'draw') { const p = a.s.pts, n = p.length; if (Math.hypot(x - p[n - 3], y - p[n - 2]) >= 0.4) p.push(x, y, Input.pr(ev)); }
+      else { this.erase(a.x, a.y, x, y); a.x = x; a.y = y; } }
+    this.draw();
+  },
+  up(e) {
+    const a = this.act; if (!a || e.pointerId !== a.pid) return; this.act = null;
+    if (a.kind === 'draw') { const s = mkStroke(a.s); s.pts = simplify(s.pts, 0.3); this.strokes.push(s); this.hist.push({ t: 'add', s: [s] }); }
+    else if (a.items.length) this.hist.push({ t: 'erase', items: a.items });
+    this.draw();
+  },
+  erase(x0, y0, x1, y1) { const a = this.act; for (let i = this.strokes.length - 1; i >= 0; i--) { const s = this.strokes[i]; if (hitStroke(s, x0, y0, x1, y1, 12)) { a.items.push({ s, i }); this.strokes.splice(i, 1); } } },
+  undo() { const h = this.hist.pop(); if (h) { applyH(this, h, true); this.draw(); } },
+  clear() { if (!this.strokes.length) return; this.hist.push({ t: 'clear', prev: this.strokes.slice() }); this.strokes = []; this.draw(); },
+  usedH() { let m = 0; for (const s of this.strokes) { strokeGeom(s); m = Math.max(m, s._bb[3]); } return clamp(Math.ceil(m + 26), 110, this.h); },
+  more() { this.h = Math.min(1400, this.h + 280); this.size(); },
+  reset() { this.strokes = []; this.hist = []; this.h = 420; this.size(); }
+};
+
+async function submitPost() {
+  const sec = F.sec, text = $('#fText').value.trim().slice(0, 2000), strokes = Pad.strokes.slice();
+  if (!sec) return;
+  if (!text && !strokes.length) { toast('Type or write something first.'); return; }
+  if (!(await canPostProbe())) { updateComposerAvail(); if (F.canPost === null) toast('Couldn\'t reach the forum. Your writing is still here, so try again.'); return; }
+  const btn = $('#fPost'); btn.disabled = true; btn.textContent = 'Posting…';
+  const id = 'p' + Date.now().toString(36) + Math.random().toString(36).slice(2, 7), at = new Date().toISOString(), h = strokes.length ? Pad.usedH() : 0;
+  try {
+    const own = await withRetry(() => S.db.doc('forum/' + F.me).get());
+    const posts = own.exists ? cleanPosts(own.data()) : [];
+    if (posts.length >= 150) throw { code: 'mine_full' };
+    if (strokes.length) {
+      const enc = strokes.map(encStroke); if (enc.join('').length > 230000) throw { code: 'too_much_ink' };
+      await withRetry(() => S.db.doc(`forum/${F.me}/p/${id}`).set({ s: sec, h, st: enc }));
+      F.ink.set(F.me + '/' + id, { h, strokes });
+    }
+    posts.push({ id, s: sec, at, t: text, ink: strokes.length ? 1 : 0, h });
+    await withRetry(() => S.db.doc('forum/' + F.me).set(Object.assign({ v: 1, posts }, ownMeta())));
+    F.users.set(F.me, posts); const om = ownMeta(); if (om.name) F.names.set(F.me, om);
+    $('#fText').value = ''; Pad.reset(); F.drafts.delete(sec); $('#composer').classList.add('hidden');
+    recount(); toast('Posted to the class forum');
+  } catch (e) {
+    const code = e && e.code;
+    if (code === 'invalid_argument') { F.canPost = false; updateComposerAvail(); }
+    else if (code === 'too_much_ink') toast('That handwriting is too long for one post. Split it into two posts.');
+    else if (code === 'mine_full') toast('You have 150 posts. Delete an older one to post again.');
+    else if (code === 'quota_exceeded') toast('The forum\'s storage is full. Let your lecturer know.');
+    else toast('Couldn\'t post. Your writing is still here, so try again.');
+  }
+  btn.textContent = 'Post'; btn.disabled = F.canPost === false;
+}
+function deletePost(uid, pid) {
+  const mine = uid === F.me;
+  confirmDlg('Delete this post?', mine ? 'Your post will be removed from the class forum.' : 'This post will be removed from the class forum for everyone.', 'Delete post', async () => {
+    try {
+      const snap = await withRetry(() => S.db.doc('forum/' + uid).get());
+      const v = snap.exists ? snap.data() : null, posts = cleanPosts(v).filter(p => p.id !== pid);
+      await withRetry(() => S.db.doc('forum/' + uid).set(Object.assign({ v: 1, posts }, keptMeta(v), uid === F.me ? ownMeta() : {})));
+      F.users.set(uid, posts); recount();
+      try { await S.db.doc(`forum/${uid}/p/${pid}`).delete(); } catch {}
+      toast('Post deleted');
+    } catch { toast('Couldn\'t delete the post. Try again.'); }
+  });
+}
+function renderFeed() {
+  const feed = $('#feed'); if (!F.sec) return;
+  const list = []; for (const [uid, posts] of F.users) for (const p of posts) if (p.s === F.sec) list.push(Object.assign({ uid }, p));
+  list.sort((a, b) => (b.at || '').localeCompare(a.at || ''));
+  let empty = feed.querySelector('.f-empty');
+  if (!list.length) {
+    feed.querySelectorAll('.post').forEach(el => el.remove());
+    if ((!S.db && S.role !== 'pending') || F.needSignIn) { if (empty) empty.remove(); return; }
+    if (!empty) { empty = document.createElement('div'); empty.className = 'f-empty'; feed.appendChild(empty); }
+    empty.textContent = F.ready ? 'No reflections yet for this section. Be the first to share one.' : 'Loading reflections…';
+    return;
+  }
+  if (empty) empty.remove();
+  const old = new Map([...feed.querySelectorAll('.post')].map(el => [el.dataset.key, el]));
+  for (const p of list) { const key = p.uid + '/' + p.id; let el = old.get(key); if (el) old.delete(key); else el = makePost(p); feed.appendChild(el); }
+  old.forEach(el => el.remove());
+  nameAll();
+}
+function makePost(p) {
+  const el = document.createElement('article'); el.className = 'post'; el.dataset.key = p.uid + '/' + p.id; el.dataset.uid = p.uid;
+  el.innerHTML = '<header><img class="av" alt=""><div class="who"><b class="nm">Classmate</b><span class="badge hidden">Lecturer</span><span class="tm"></span></div></header>';
+  el.querySelector('.tm').textContent = fmtTime(p.at);
+  if (F.staff.has(p.uid)) el.querySelector('.badge').classList.remove('hidden');
+  if (p.uid === F.me || S.role === 'lecturer') { const b = document.createElement('button'); b.type = 'button'; b.className = 'del'; b.textContent = 'Delete'; b.onclick = () => deletePost(p.uid, p.id); el.querySelector('header').appendChild(b); }
+  if (p.t) { const t = document.createElement('p'); t.className = 'txt'; t.textContent = p.t; el.appendChild(t); }
+  if (p.ink) { const c = document.createElement('canvas'); c.className = 'ink'; c.style.aspectRatio = `${PADW} / ${Math.max(40, p.h || 300)}`; c.setAttribute('role', 'img'); c.setAttribute('aria-label', 'Handwritten reflection'); el.appendChild(c); inkObs.observe(c); }
+  return el;
+}
+async function nameAll() {
+  const els = [...document.querySelectorAll('#feed .post, #homePanel .rec')]; const ids = [...new Set(els.map(e => e.dataset.uid).filter(Boolean))];
+  if (!ids.length) return;
+  let ps = {}; try { if (S.user && S.user.profiles) ps = (await S.user.profiles(ids)) || {}; } catch {}
+  for (const el of els) {
+    const uid = el.dataset.uid, p = ps[uid], nm = el.querySelector('.nm');
+    const stored = F.names.get(uid), name = (p && p.name) || (stored && stored.name) || '';
+    if (nm) nm.textContent = uid === F.me ? 'You' : (name || (F.staff.has(uid) ? 'Lecturer' : 'Classmate'));
+    const av = el.querySelector('.av');
+    if (av) { const src = (p && p.avatarUrl) || (stored && stored.photo) || avatarFor(name || 'Classmate'); if (av.getAttribute('src') !== src) { av.referrerPolicy = 'no-referrer'; av.onerror = () => { av.onerror = null; av.src = avatarFor(name || 'Classmate'); }; av.src = src; } }
+  }
+}
+const inkObs = 'IntersectionObserver' in window
+  ? new IntersectionObserver(ents => { for (const en of ents) if (en.isIntersecting) { inkObs.unobserve(en.target); loadInk(en.target); } }, { rootMargin: '400px' })
+  : { observe: c => loadInk(c), unobserve() {} };
+async function loadInk(c) {
+  const post = c.closest('.post'); if (!post) return; const key = post.dataset.key; let v = F.ink.get(key);
+  if (!v) {
+    try {
+      const [uid, pid] = key.split('/'); const snap = await withRetry(() => S.db.doc(`forum/${uid}/p/${pid}`).get()); const d = snap.exists ? snap.data() : null;
+      v = { h: clamp(+(d && d.h) || 300, 40, 3000), strokes: d && Array.isArray(d.st) ? d.st.slice(0, 6000).map(decStroke).filter(Boolean) : [] };
+      F.ink.set(key, v);
+    } catch { return; }
+  }
+  c._ink = v; c.style.aspectRatio = `${PADW} / ${v.h}`; paintInk(c);
+}
+function paintInk(c) {
+  const v = c._ink; if (!v) return; const w = c.clientWidth; if (!w) return;
+  const dpr = Math.min(devicePixelRatio || 1, 2.5), k = w / PADW;
+  c.width = Math.round(w * dpr); c.height = Math.round(v.h * k * dpr);
+  const ctx = c.getContext('2d'); ctx.setTransform(k * dpr, 0, 0, k * dpr, 0, 0); for (const s of v.strokes) drawStroke(ctx, s);
+}
+function wireForum() {
+  Pad.init();
+  new ResizeObserver(() => document.querySelectorAll('#feed canvas.ink').forEach(paintInk)).observe($('#feed'));
+  $('#fWrite').onclick = async () => {
+    const c = $('#composer'); if (!c.classList.contains('hidden')) { c.scrollIntoView({ block: 'nearest', behavior: 'smooth' }); return; }
+    $('#fWrite').disabled = true; const ok = await canPostProbe(); updateComposerAvail();
+    if (!ok) { if (ok === null) { $('#fWrite').disabled = false; toast('Couldn\'t reach the forum. Check the connection and try again.'); } return; }
+    c.classList.remove('hidden'); Pad.size();
+  };
+  $('#fCancel').onclick = () => {
+    const has = $('#fText').value.trim() || Pad.strokes.length;
+    const close = () => { $('#fText').value = ''; Pad.reset(); F.drafts.delete(F.sec); $('#composer').classList.add('hidden'); };
+    if (has) confirmDlg('Discard this reflection?', 'What you typed and wrote on the pad will be cleared.', 'Discard', close); else close();
+  };
+  $('#fPost').onclick = () => submitPost();
+  $('#padBar').onclick = e => {
+    const t = e.target.closest('[data-pt]'), c = e.target.closest('[data-pc]');
+    if (t) { Pad.tool = t.dataset.pt; document.querySelectorAll('[data-pt]').forEach(b => b.setAttribute('aria-pressed', String(b === t))); }
+    if (c) { Pad.color = c.dataset.pc; Pad.tool = 'pen'; document.querySelectorAll('[data-pc]').forEach(b => b.setAttribute('aria-pressed', String(b === c))); document.querySelectorAll('[data-pt]').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.pt === 'pen'))); }
+  };
+  $('#pUndo').onclick = () => Pad.undo();
+  $('#pClear').onclick = () => Pad.clear();
+  $('#pMore').onclick = () => Pad.more();
+}
+
+/* ---------------- boot ---------------- */
+async function boot() {
+  Board.init(); wire();
+  try {
+    const r = await fetch('data.json'); DATA = await r.json();
+  } catch {
+    $('#homePanel').innerHTML = '<div class="home-in"><h1>Questions didn\'t load</h1><p>Reload the page to try again.</p></div>'; return;
+  }
+  for (const ch of DATA.chapters) { CHAPTERS.set(ch.n, ch); for (const sec of ch.sections) { sec.ch = ch; SECS.set(sec.id, sec); for (const it of sec.items) { it.ch = ch; it.sec = sec; it.idx = ITEMS.length; ITEMS.push(it); BYID.set(it.id, it); } } }
+  buildRail(); renderNav(); route();
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => Board.dirtyBase());
+  initCaps();
+}
+boot();
+</script>
+</body>
+</html>
