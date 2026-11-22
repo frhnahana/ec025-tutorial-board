@@ -2,19 +2,18 @@
 // Edit this file on GitHub (pencil icon), then commit. Render updates the website about a minute later.
 
 window.EC025_CONFIG = {
-  // 1. Your Firebase web app settings.
-  //    Firebase console > Project settings (gear icon) > General > Your apps > SDK setup and configuration > Config.
-  //    Copy each value between the quotes. These values are not secret: the database rules protect your data.
+  // Firebase web app settings (Firebase console > Project settings > General > Your apps).
+  // These values are not secret: the database rules protect your data.
   firebase: {
-    apiKey: "",
-    authDomain: "",
-    projectId: "",
-    storageBucket: "",
-    messagingSenderId: "",
-    appId: ""
+    apiKey: "AIzaSyDpAIKRLSeRLVvAAm46hTW4DYIj-Pdu0dQ",
+    authDomain: "ec025-tutorial-board.firebaseapp.com",
+    projectId: "ec025-tutorial-board",
+    storageBucket: "ec025-tutorial-board.firebasestorage.app",
+    messagingSenderId: "623028561497",
+    appId: "1:623028561497:web:51fbc83d49995ba4153348"
   },
 
-  // 2. The Google account(s) allowed to write worked solutions.
-  //    Use the same email(s) in firestore.rules.
-  lecturerEmails: ["your.email@gmail.com"]
+  // The Google account(s) allowed to write worked solutions.
+  // Use the same email(s) in firestore.rules.
+  lecturerEmails: ["frhna.kha@gmail.com"]
 };
