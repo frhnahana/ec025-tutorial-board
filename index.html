@@ -951,6 +951,13 @@ function bundleFor(n) {
   if (!BUNDLES.has(f)) BUNDLES.set(f, fetch(f).then(r => (r.ok ? r.json() : null)).catch(() => { BUNDLES.delete(f); return null; }));
   return BUNDLES.get(f);
 }
+const Diag = {
+  on: false, lines: [],
+  log(t, e) { if (!this.on) return; if (t === 'pointermove' && this.lastT === 'pointermove' && this.lines.length) { this.lines[this.lines.length - 1].n++; } else { this.lines.push({ t, p: e.pointerType, id: e.pointerId, b: e.buttons, n: 1 }); if (this.lines.length > 10) this.lines.shift(); } this.lastT = t; this.show(); },
+  show() { let el = $('#diag'); if (!el) { el = document.createElement('div'); el.id = 'diag'; el.style.cssText = 'position:absolute;left:12px;top:12px;z-index:5;padding:8px 10px;border-radius:12px;background:rgba(45,42,68,.86);color:#fff;font:12px/1.45 ui-monospace,Menlo,monospace;pointer-events:none;white-space:pre'; $('#board').appendChild(el); }
+    el.textContent = 'Pencil check (tap ••• to turn off)\n' + this.lines.map(l => `${l.t.replace('pointer', '')} ${l.p} #${l.id} b${l.b}${l.n > 1 ? ' ×' + l.n : ''}`).join('\n'); },
+  toggle() { this.on = !this.on; this.lines = []; const el = $('#diag'); if (el) el.remove(); if (this.on) this.show(); }
+};
 const Img = {
   cache: new Map(),
   get(it, onload) {
@@ -972,7 +979,11 @@ const Input = {
     el.addEventListener('pointermove', e => this.move(e));
     el.addEventListener('pointerup', e => this.up(e));
     el.addEventListener('pointercancel', e => this.up(e, true));
-    el.addEventListener('lostpointercapture', e => { if (this.act && this.act.pid === e.pointerId) this.up(e, true); });
+    el.addEventListener('lostpointercapture', e => { if (e.pointerType === 'mouse' && this.act && this.act.pid === e.pointerId) this.up(e, true); });
+    for (const t of ['pointerdown', 'pointermove', 'pointerup', 'pointercancel', 'lostpointercapture']) el.addEventListener(t, e => Diag.log(t, e));
+    // a pen or finger lifted outside the board still ends its stroke
+    const endOutside = e => { if (this.act && e.target !== el && (e.pointerId === this.act.pid || this.same(this.act, e))) this.up(e, e.type === 'pointercancel'); };
+    window.addEventListener('pointerup', endOutside, true); window.addEventListener('pointercancel', endOutside, true);
     el.addEventListener('contextmenu', e => e.preventDefault());
     // iPad: stop the magnifier, callouts and page gestures from stealing Pencil strokes
     for (const t of ['touchstart', 'touchmove']) el.addEventListener(t, e => { if (e.cancelable) e.preventDefault(); }, { passive: false });
@@ -999,21 +1010,20 @@ const Input = {
     if (touch && this.touches.size >= 2) {                       // two fingers: pinch to zoom and pan
       if (this.act && this.act.kind !== 'pan' && this.act.kind !== 'pinch') this.abort();
       if (this.touches.size === 2) this.pinchStart();
-      try { Board.live.setPointerCapture(e.pointerId); } catch {}
       return;
     }
     const touchPans = touch && (!drawOK || (S.penSeen && !S.fingerDraw));
     if (e.pointerType === 'pen' && !drawOK) { viewOnlyHint(); return; }
     if (touchPans || e.button === 1 || (e.pointerType === 'mouse' && (this.space || !drawOK))) {
       if (this.act && this.act.kind !== 'pan') this.abort();
-      if (!this.act) this.act = { kind: 'pan', pid: e.pointerId, x: e.clientX, y: e.clientY, t: performance.now(), vx: 0, vy: 0 };
-      try { Board.live.setPointerCapture(e.pointerId); } catch {}
+      if (!this.act) this.act = { kind: 'pan', pid: e.pointerId, ptype: e.pointerType, x: e.clientX, y: e.clientY, t: performance.now(), vx: 0, vy: 0 };
+      if (e.pointerType === 'mouse') try { Board.live.setPointerCapture(e.pointerId); } catch {}
       return;
     }
     if (this.act) return;
     if (e.button > 0) return;
     if (!drawOK) { viewOnlyHint(); return; }
-    e.preventDefault(); try { Board.live.setPointerCapture(e.pointerId); } catch {}
+    e.preventDefault(); if (e.pointerType === 'mouse') try { Board.live.setPointerCapture(e.pointerId); } catch {}
     const [x, y] = this.xy(e), pid = e.pointerId, d = editDoc();
     const tool = e.pointerType === 'pen' && (e.button === 5 || (e.buttons & 32)) ? 'eraser' : S.tool;   // stylus eraser end
     if (tool === 'pen' || tool === 'hl' || (tool === 'arrow' && S.arrowKind === 'curly')) {
@@ -1036,20 +1046,23 @@ const Input = {
         this.act = { kind: 'move', pid, x0: x, y0: y, dx: 0, dy: 0 }; for (const s of Sel.set) s._hide = true; Board.dirtyBase();
       } else { clearSel(); this.act = { kind: 'lasso', pid, pts: [x, y] }; }
     }
+    if (this.act) this.act.ptype = e.pointerType;
     Board.dirtyLive();
   },
+  same(a, e) { return e.pointerId === a.pid || (a.ptype === 'pen' && e.pointerType === 'pen'); },
   move(e) {
     const a = this.act;
     if (e.pointerType === 'touch' && this.touches.has(e.pointerId)) this.touches.set(e.pointerId, { x: e.clientX, y: e.clientY });
     if (!a) return;
     if (a.kind === 'pinch') { if (this.touches.has(e.pointerId) && this.touches.size >= 2) this.pinchMove(); return; }
     if (a.kind === 'pan') {
-      if (e.pointerId !== a.pid) return;
+      if (!this.same(a, e)) return;
       const now = performance.now(), dx = e.clientX - a.x, dy = e.clientY - a.y, dt = Math.max(1, now - a.t);
       Board.setView(Board.sx - dx / Board.scale, Board.sy - dy / Board.scale);
       a.vx = 0.8 * (dx / dt) + 0.2 * a.vx; a.vy = 0.8 * (dy / dt) + 0.2 * a.vy; a.x = e.clientX; a.y = e.clientY; a.t = now; return;
     }
-    if (e.pointerId !== a.pid) return;
+    if (!this.same(a, e)) return;
+    if (e.pointerType === 'pen' && e.buttons === 0 && e.pressure === 0) return;   // Pencil hovering, not touching
     const evs = e.getCoalescedEvents ? e.getCoalescedEvents() : null; const list = evs && evs.length ? evs : [e];
     if (a.kind === 'draw') {
       for (const ev of list) { const [x, y] = this.xy(ev); const p = a.s.pts, n = p.length; if (Math.hypot(x - p[n - 3], y - p[n - 2]) < 0.4) continue; p.push(x, y, this.pr(ev)); }
@@ -1069,7 +1082,7 @@ const Input = {
     const a = this.act; if (!a) return;
     const resume = () => { const [id, t] = [...this.touches.entries()][0]; this.act = { kind: 'pan', pid: id, x: t.x, y: t.y, t: performance.now(), vx: 0, vy: 0 }; };
     if (a.kind === 'pinch') { this.act = null; if (this.touches.size === 1) resume(); else if (this.touches.size >= 2) this.pinchStart(); return; }
-    if (e.pointerId !== a.pid) return;
+    if (!this.same(a, e)) return;
     this.act = null;
     if (a.kind === 'pan') {
       if (this.touches.size) { resume(); return; }
@@ -1080,6 +1093,7 @@ const Input = {
     }
     const d = editDoc();
     if (a.kind === 'draw') {
+      if (cancelled) { const p = a.s.pts; let L = 0; for (let i = 3; i < p.length; i += 3) L += Math.hypot(p[i] - p[i - 3], p[i + 1] - p[i - 2]); if (L < 4) { Board.dirtyLive(); return; } }
       const s = mkStroke(a.s); s.pts = simplify(s.pts, s.t === 'hl' ? 0.6 : 0.3);
       d.strokes.push(s); pushHist(d, { t: 'add', s: [s] }); markDirty(d);
     } else if (a.kind === 'shape') {
@@ -1367,6 +1381,7 @@ function openMorePop(b) {
   if (S.dl) h += `<button class="opt" type="button" data-a="dl">${svgI('download')}<span>Download as image<small>Question and working as a PNG</small></span></button>`;
   if (canDraw()) h += `<button class="opt" type="button" data-a="finger" aria-pressed="${S.fingerDraw || !S.penSeen}">${svgI('finger')}<span>Draw with finger<small>${S.penSeen ? (S.fingerDraw ? 'On: fingers draw, two fingers scroll' : 'Off: stylus draws, fingers scroll') : 'No stylus seen yet, so fingers draw'}</small></span></button>`;
   h += `<div class="opt" style="font-weight:400;font-size:13px;color:var(--muted);cursor:default">Zoom: pinch with two fingers, or Ctrl + scroll</div>`;
+  if (canDraw()) h += `<button class="opt" type="button" data-a="diag" aria-pressed="${Diag.on}">${svgI('pen')}<span>Pencil check<small>Shows what the iPad reports while you write</small></span></button>`;
   h += `<button class="opt" type="button" data-a="rail">${svgI('side')}<span>Move tools to the ${S.rail === 'left' ? 'right' : 'left'}</span></button>`;
   if (ed && d) h += `<hr><button class="opt danger" type="button" data-a="clear">${svgI('trash')}<span>Clear this board<small>Removes all writing on this question</small></span></button>`;
   if (stu && S.practice) h += `<hr><button class="opt danger" type="button" data-a="clearp">${svgI('trash')}<span>Clear my practice</span></button>`;
@@ -1378,6 +1393,7 @@ function openMorePop(b) {
       if (a === 'space') addSpace();
       else if (a === 'dl') downloadImage();
       else if (a === 'finger') { if (!S.penSeen) { toast('Fingers draw until a stylus touches the board.'); return; } S.fingerDraw = !S.fingerDraw; LS.set('fingerDraw', S.fingerDraw); toast(S.fingerDraw ? 'Fingers now draw. Scroll with two fingers.' : 'Stylus draws, fingers scroll.'); }
+      else if (a === 'diag') Diag.toggle();
       else if (a === 'rail') { S.rail = S.rail === 'left' ? 'right' : 'left'; LS.set('rail', S.rail); buildRail(); }
       else if (a === 'clear') confirmDlg('Clear this board?', 'All writing on this question will be removed for everyone. You can undo straight after.', 'Clear board', () => { const dd = getDoc(S.cur); if (!dd.strokes.length) return; pushHist(dd, { t: 'clear', prev: dd.strokes.slice() }); dd.strokes = []; clearSel(); markDirty(dd); Board.dirtyBase(); });
       else if (a === 'clearp') confirmDlg('Clear your practice?', 'Your own writing on this question will be removed from this device.', 'Clear practice', () => { const pd = getPDoc(S.cur); pushHist(pd, { t: 'clear', prev: pd.strokes.slice() }); pd.strokes = []; markDirty(pd); Board.dirtyBase(); });
@@ -1763,6 +1779,8 @@ const Pad = {
     const c = this.c;
     c.addEventListener('pointerdown', e => this.down(e)); c.addEventListener('pointermove', e => this.move(e));
     c.addEventListener('pointerup', e => this.up(e)); c.addEventListener('pointercancel', e => this.up(e));
+    const endOutside = e => { if (this.act && e.target !== c) this.up(e); };
+    window.addEventListener('pointerup', endOutside, true); window.addEventListener('pointercancel', endOutside, true);
     for (const t of ['touchstart', 'touchmove']) c.addEventListener(t, e => { if (e.cancelable) e.preventDefault(); }, { passive: false });
   },
   size() { const w = $('#pad').clientWidth; if (!w) return; this.dpr = Math.min(devicePixelRatio || 1, 2.5); this.scale = w / PADW; const hh = this.h * this.scale;
@@ -1780,15 +1798,17 @@ const Pad = {
     if (e.pointerType === 'pen' && !S.penSeen) { S.penSeen = true; LS.set('penSeen', true); }
     if (e.pointerType === 'touch' && S.penSeen && !S.fingerDraw) return;     // palm rest while writing with a stylus
     if (this.act || e.button > 0) return;
-    e.preventDefault(); try { this.c.setPointerCapture(e.pointerId); } catch {}
+    e.preventDefault(); if (e.pointerType === 'mouse') try { this.c.setPointerCapture(e.pointerId); } catch {}
     this.rect = this.c.getBoundingClientRect(); const [x, y] = this.xy(e);
     const erase = this.tool === 'eraser' || (e.pointerType === 'pen' && (e.button === 5 || (e.buttons & 32)));
     if (erase) { this.act = { kind: 'erase', pid: e.pointerId, x, y, items: [] }; this.erase(x, y, x, y); }
     else this.act = { kind: 'draw', pid: e.pointerId, s: { t: 'pen', c: this.color, w: 3.8, pts: [x, y, Input.pr(e)] } };
+    this.act.ptype = e.pointerType;
     this.draw();
   },
   move(e) {
-    const a = this.act; if (!a || e.pointerId !== a.pid) return;
+    const a = this.act; if (!a || !Input.same(a, e)) return;
+    if (e.pointerType === 'pen' && e.buttons === 0 && e.pressure === 0) return;
     const evs = e.getCoalescedEvents ? e.getCoalescedEvents() : null, list = evs && evs.length ? evs : [e];
     for (const ev of list) { const [x, y] = this.xy(ev);
       if (a.kind === 'draw') { const p = a.s.pts, n = p.length; if (Math.hypot(x - p[n - 3], y - p[n - 2]) >= 0.4) p.push(x, y, Input.pr(ev)); }
@@ -1796,7 +1816,7 @@ const Pad = {
     this.draw();
   },
   up(e) {
-    const a = this.act; if (!a || e.pointerId !== a.pid) return; this.act = null;
+    const a = this.act; if (!a || !Input.same(a, e)) return; this.act = null;
     if (a.kind === 'draw') { const s = mkStroke(a.s); s.pts = simplify(s.pts, 0.3); this.strokes.push(s); this.hist.push({ t: 'add', s: [s] }); }
     else if (a.items.length) this.hist.push({ t: 'erase', items: a.items });
     this.draw();
